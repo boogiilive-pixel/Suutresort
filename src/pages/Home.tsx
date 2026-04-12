@@ -110,11 +110,7 @@ export default function Home() {
           </motion.div>
         </div>
 
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
-            <div className="w-1 h-2 bg-white rounded-full" />
-          </div>
-        </div>
+
 
         {/* Partners Carousel Overlay */}
         <div className="absolute bottom-0 left-0 w-full py-8 bg-gradient-to-t from-black/50 to-transparent overflow-hidden">
