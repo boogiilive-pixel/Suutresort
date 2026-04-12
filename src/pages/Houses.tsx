@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 const houses = [
   {
     id: 'villa-1',
-    title: 'Тансаг зэрэглэлийн Вилла',
-    description: 'Гэр бүл, найз нөхдөөрөө амрахад хамгийн тохиромжтой, орчин үеийн шийдэл бүхий тансаг зэрэглэлийн вилла.',
+    title: 'Тав тухтай Вилла',
+    description: 'Гэр бүл, найз нөхдөөрөө амрахад хамгийн тохиромжтой, орчин үеийн шийдэл бүхий тав тухтай вилла.',
     capacity: '6-8 хүн',
     size: '120 м.кв',
     price: '450,000₮ / хоног',
@@ -57,7 +57,7 @@ export default function Houses() {
             animate={{ opacity: 1, y: 0 }}
             className="text-5xl md:text-6xl font-serif font-bold mb-4"
           >
-            Тансаг зэрэглэлийн <span className="text-brand-yellow italic">Вилла</span>
+            Тав тухтай <span className="text-brand-yellow italic">Вилла</span>
           </motion.h1>
           <p className="text-xl text-white/80 max-w-2xl mx-auto">
             Таны тав тухыг дээд зэргээр хангасан, байгалийн үзэсгэлэнт газарт байрлах байшингууд.

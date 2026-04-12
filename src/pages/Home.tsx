@@ -11,8 +11,8 @@ const highlights = [
     image: 'https://lh3.googleusercontent.com/d/1QyGzIVu5zReIP6TE194liiqltKGztEb9'
   },
   {
-    title: 'Тансаг зэрэглэлийн байшин',
-    description: 'Орчин үеийн шийдэл бүхий тансаг зэрэглэлийн вилла болон байшингууд таныг хүлээж байна.',
+    title: 'Тав тухтай байшин',
+    description: 'Орчин үеийн шийдэл бүхий тав тухтай вилла болон байшингууд таныг хүлээж байна.',
     icon: <HomeIcon className="text-brand-red" size={32} />,
     image: 'https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN'
   },
@@ -93,7 +93,7 @@ export default function Home() {
             transition={{ delay: 0.6 }}
             className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto"
           >
-            Тансаг зэрэглэлийн үйлчилгээ, тав тухтай орчин, байгалийн үзэсгэлэн таныг хүлээж байна.
+            Тав тухтай үйлчилгээ, найрсаг орчин, байгалийн үзэсгэлэн таныг хүлээж байна.
           </motion.p>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -139,6 +139,112 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Selection Sections */}
+      <section className="section-padding bg-[#F8F9FA]">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* House Rental Card */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100"
+            >
+              <div className="p-4">
+                <div className="aspect-[16/10] rounded-xl overflow-hidden relative group">
+                  <img 
+                    src="https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN" 
+                    alt="House Rental" 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-brand-teal">
+                    Боломжтой
+                  </div>
+                </div>
+              </div>
+              
+              <div className="px-6 pb-6 pt-2 space-y-4">
+                <div>
+                  <h3 className="text-2xl font-bold text-brand-teal mb-1">ХАУС ТҮРЭЭС</h3>
+                  <p className="text-sm text-gray-500 font-medium">Бүрэн тохижуулсан орчин үеийн хаус</p>
+                </div>
+                
+                <div className="h-px bg-gray-100 w-full" />
+                
+                <div className="flex justify-between items-end">
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Үнэ</div>
+                    <div className="text-xl font-bold text-brand-teal">450,000₮ <span className="text-xs font-normal text-gray-400">/ хоног</span></div>
+                  </div>
+                  <div className="space-y-1 text-right">
+                    <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Багтаамж</div>
+                    <div className="text-xl font-bold text-brand-teal">6-12 <span className="text-xs font-normal text-gray-400">хүн</span></div>
+                  </div>
+                </div>
+
+                <Link 
+                  to="/booking" 
+                  className="w-full btn-primary py-3 flex items-center justify-center gap-2 group"
+                >
+                  Захиалах <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Resort Card */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100"
+            >
+              <div className="p-4">
+                <div className="aspect-[16/10] rounded-xl overflow-hidden relative group">
+                  <img 
+                    src="https://lh3.googleusercontent.com/d/1kv2V6jZAlweHGZV2f8kc0YWbT_rmgFWn" 
+                    alt="Resort" 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-brand-teal">
+                    Чанартай сонголт
+                  </div>
+                </div>
+              </div>
+              
+              <div className="px-6 pb-6 pt-2 space-y-4">
+                <div>
+                  <h3 className="text-2xl font-bold text-brand-teal mb-1">РЕСОРТ</h3>
+                  <p className="text-sm text-gray-500 font-medium">Тав тухтай тохилог өрөөнүүд</p>
+                </div>
+                
+                <div className="h-px bg-gray-100 w-full" />
+                
+                <div className="flex justify-between items-end">
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Үнэ</div>
+                    <div className="text-xl font-bold text-brand-teal">250,000₮ <span className="text-xs font-normal text-gray-400">/ хоног</span></div>
+                  </div>
+                  <div className="space-y-1 text-right">
+                    <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Төрөл</div>
+                    <div className="text-xl font-bold text-brand-teal">8 <span className="text-xs font-normal text-gray-400">сонголт</span></div>
+                  </div>
+                </div>
+
+                <Link 
+                  to="/booking" 
+                  className="w-full btn-primary py-3 flex items-center justify-center gap-2 group"
+                >
+                  Захиалах <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Intro Section */}
       <section className="section-padding bg-white">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -173,10 +279,10 @@ export default function Home() {
               </h2>
             </div>
             <p className="text-lg text-brand-teal/70 leading-relaxed">
-              SUUT RESORT нь 2018 оноос хойш үйл ажиллагаагаа явуулж байгаа бөгөөд Тэрэлж байгалийн цогцолбор газарт хамгийн тав тухтай, тансаг зэрэглэлийн амралтын газруудын нэг юм. Бид зочдынхоо тав тухыг дээд зэргээр хангаж, байгалийн үзэсгэлэнг мэдрүүлэхийг зорьдог.
+              SUUT RESORT нь 2018 оноос хойш үйл ажиллагаагаа явуулж байгаа бөгөөд Тэрэлж байгалийн цогцолбор газарт хамгийн тав тухтай, орчин үеийн амралтын газруудын нэг юм. Бид зочдынхоо тав тухыг дээд зэргээр хангаж, байгалийн үзэсгэлэнг мэдрүүлэхийг зорьдог.
             </p>
             <ul className="space-y-4">
-              {['Тансаг зэрэглэлийн вилла болон өрөөнүүд', 'Мэргэжлийн тогоочийн бэлтгэсэн амтлаг хоол', 'Гэр бүл, найз нөхдөөрөө амрахад тохиромжтой', 'Байгалийн үзэсгэлэнт газар'].map((item, i) => (
+              {['Тав тухтай вилла болон өрөөнүүд', 'Мэргэжлийн тогоочийн бэлтгэсэн амтлаг хоол', 'Гэр бүл, найз нөхдөөрөө амрахад тохиромжтой', 'Байгалийн үзэсгэлэнт газар'].map((item, i) => (
                 <li key={i} className="flex items-center gap-3 text-brand-teal font-medium">
                   <CheckCircle2 className="text-brand-green" size={20} />
                   {item}
