@@ -42,6 +42,17 @@ const testimonials = [
   }
 ];
 
+const partners = [
+  { name: 'Unitel', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' }, // Placeholder for Unitel
+  { name: 'Mobicom', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
+  { name: 'Khan Bank', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
+  { name: 'Golomt Bank', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
+  { name: 'MCS', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
+  { name: 'APU', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
+  { name: 'Tavan Bogd', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
+  { name: 'TDB', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' }
+];
+
 export default function Home() {
   return (
     <div className="overflow-hidden">
@@ -102,6 +113,32 @@ export default function Home() {
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
           <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
             <div className="w-1 h-2 bg-white rounded-full" />
+          </div>
+        </div>
+
+        {/* Partners Carousel Overlay */}
+        <div className="absolute bottom-0 left-0 w-full py-8 bg-gradient-to-t from-black/50 to-transparent overflow-hidden">
+          <div className="relative flex overflow-hidden">
+            <motion.div 
+              animate={{ x: [0, -1920] }}
+              transition={{ 
+                x: {
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  duration: 50,
+                  ease: "linear",
+                },
+              }}
+              className="flex gap-24 items-center whitespace-nowrap pr-24"
+            >
+              {[...partners, ...partners, ...partners].map((partner, i) => (
+                <div key={i} className="flex items-center justify-center min-w-[150px]">
+                  <span className="text-xl font-serif font-bold text-white/30 hover:text-white/80 transition-colors cursor-default">
+                    {partner.name}
+                  </span>
+                </div>
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>
@@ -198,14 +235,9 @@ export default function Home() {
       {/* Gallery Preview */}
       <section className="section-padding bg-brand-teal/5">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-            <div className="space-y-4">
-              <span className="text-brand-green font-bold tracking-widest uppercase text-sm">Галерей</span>
-              <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-teal">Бидний орчин</h2>
-            </div>
-            <Link to="/gallery" className="btn-outline flex items-center gap-2 group">
-              Бүх зургийг үзэх <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </Link>
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+            <span className="text-brand-green font-bold tracking-widest uppercase text-sm">Галерей</span>
+            <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-teal">Бидний орчин</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -235,6 +267,23 @@ export default function Home() {
                 <div className="absolute inset-0 bg-brand-teal/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </motion.div>
             ))}
+            
+            {/* View All Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+              className="relative aspect-square rounded-2xl overflow-hidden group shadow-lg bg-brand-teal"
+            >
+              <Link to="/gallery" className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10 text-white">
+                <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:scale-110 transition-transform">
+                  <ArrowRight size={32} />
+                </div>
+                <span className="font-bold text-lg">Бүх зургийг үзэх</span>
+              </Link>
+              <div className="absolute inset-0 bg-brand-teal/40 group-hover:bg-brand-teal/60 transition-colors" />
+            </motion.div>
           </div>
         </div>
       </section>
