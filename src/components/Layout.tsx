@@ -251,8 +251,18 @@ export default function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
         
-        <div className="max-w-7xl mx-auto pt-8 border-t border-white/10 text-center text-sm text-white/50">
+        <div className="max-w-7xl mx-auto pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/50">
           <p>© {new Date().getFullYear()} SUUT RESORT. Бүх эрх хуулиар хамгаалагдсан.</p>
+          <p>
+            <a 
+              href="https://cornerstoneai.dev/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-brand-yellow transition-colors"
+            >
+              Cornerstone Ai бүтээв
+            </a>
+          </p>
         </div>
       </footer>
 

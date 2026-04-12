@@ -335,7 +335,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="section-padding relative overflow-hidden">
+      <section className="pt-24 pb-0 relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2000" 
@@ -343,14 +343,14 @@ export default function Home() {
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-brand-teal/80 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-teal/60 via-brand-teal/90 to-brand-teal" />
         </div>
         
-        <div className="relative z-10 max-w-4xl mx-auto text-center text-white space-y-8">
+        <div className="relative z-10 max-w-4xl mx-auto text-center text-white space-y-8 pb-24">
           <h2 className="text-4xl md:text-6xl font-serif font-bold">Таны амралт <br /> эндээс эхэлнэ</h2>
           <p className="text-xl text-white/80">Одоо захиалгаа өгөөд байгалийн сайханд амарч, эрч хүчээ сэлбээрэй.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Link to="/booking" className="btn-primary bg-brand-yellow text-brand-teal hover:bg-white px-12 py-4 text-lg">Захиалах</Link>
+            <Link to="/booking" className="btn-primary bg-brand-yellow text-brand-teal hover:bg-white px-12 py-4 text-lg border-none">Захиалах</Link>
             <div className="flex items-center gap-4 text-lg font-medium">
               <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
                 <Users size={24} />
