@@ -2,7 +2,6 @@ import { motion } from 'motion/react';
 import { ArrowRight, Star, CheckCircle2, MapPin, Users, Home as HomeIcon, Bed } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
 
 const highlights = [
   {
@@ -55,51 +54,63 @@ const partners = [
 ];
 
 export default function Home() {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-  
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}
-      <section className="relative h-[80vh] min-h-[500px] w-full flex items-center justify-center text-white overflow-hidden">
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-black bg-[url('https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4')] bg-cover bg-center">
-          <div className="absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2">
-            <iframe
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/TOCsJ-9CZV0?autoplay=1&mute=1&loop=1&playlist=TOCsJ-9CZV0&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1"
-              title="Background Video"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            ></iframe>
-          </div>
+      <section className="relative h-screen w-full flex items-end justify-center text-white overflow-hidden pb-24 md:pb-32">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4" 
+            alt="Resort Hero" 
+            className="w-full h-full object-cover scale-105 animate-slow-zoom"
+            referrerPolicy="no-referrer"
+          />
           {/* Gradient Overlays */}
           <div className="absolute inset-0 bg-black/30" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
         </div>
 
         <div className="relative z-10 text-center px-6 max-w-4xl">
-          <motion.h1 
+          <motion.span 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-4xl md:text-6xl font-serif font-bold mb-6 leading-tight"
+            className="inline-block px-4 py-1 bg-brand-yellow/20 backdrop-blur-md border border-brand-yellow/30 rounded-full text-brand-yellow font-medium text-sm mb-6"
           >
-            Байгалийн сайханд <br /> <span className="text-brand-yellow italic">SUUT RESORT</span>
-          </motion.h1>
-          <motion.div 
+            Тавтай морилно уу
+          </motion.span>
+          <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
+            className="text-5xl md:text-7xl font-serif font-bold mb-8 leading-tight"
+          >
+            Байгалийн сайханд <br /> <span className="text-brand-yellow italic">SUUT RESORT</span>-д амраарай
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto"
+          >
+            Тав тухтай үйлчилгээ, найрсаг орчин, байгалийн үзэсгэлэн таныг хүлээж байна.
+          </motion.p>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link to="/booking" className="btn-primary flex items-center gap-2 group">
-              Захиалах <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              Одоо захиалах <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <Link to="/experience" className="btn-outline border-white text-white hover:bg-white hover:text-brand-teal">
+              Дэлгэрэнгүй үзэх
             </Link>
           </motion.div>
         </div>
+
+
 
         {/* Partners Carousel Overlay */}
         <div className="absolute bottom-0 left-0 w-full py-8 bg-gradient-to-t from-black/50 to-transparent overflow-hidden">
