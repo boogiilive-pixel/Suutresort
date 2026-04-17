@@ -64,8 +64,8 @@ export default function Contact() {
                   <Mail size={24} />
                 </div>
                 <h4 className="font-bold text-brand-teal">И-мэйл</h4>
-                <p className="text-sm text-brand-teal/70">info@suutresort.mn</p>
-                <p className="text-sm text-brand-teal/70">booking@suutresort.mn</p>
+                <p className="text-sm text-brand-teal/70">info@suutresort.com</p>
+                <p className="text-sm text-brand-teal/70">booking@suutresort.com</p>
               </div>
 
               <div className="p-8 bg-brand-teal/5 rounded-2xl border border-brand-teal/10 space-y-4">
