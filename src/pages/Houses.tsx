@@ -41,7 +41,7 @@ export default function Houses() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative h-[70vh] flex items-center justify-center text-white overflow-hidden">
+      <section className="relative h-[40vh] md:h-[60vh] lg:h-[70vh] flex items-center justify-center text-white overflow-hidden pt-20 md:pt-0">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://lh3.googleusercontent.com/d/1CS7XHvUWir3_JHVNnSFKQ9bCrhAzN-Dx" 

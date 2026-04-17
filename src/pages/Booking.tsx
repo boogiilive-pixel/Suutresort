@@ -143,7 +143,7 @@ export default function Booking() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative h-[60vh] flex items-center justify-center text-white overflow-hidden pt-20">
+      <section className="relative h-[40vh] md:h-[60vh] lg:h-[70vh] flex items-center justify-center text-white overflow-hidden pt-20 md:pt-0">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG" 
