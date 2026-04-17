@@ -17,7 +17,7 @@ export default function Contact() {
       <section className="relative h-[70vh] flex items-center justify-center text-white overflow-hidden pt-20">
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://lh3.googleusercontent.com/d/1QBsbTB3ikBg2lwJLR0FNh6oPRXi0ARBx" 
+            src="https://lh3.googleusercontent.com/d/10vBI0Z_SnXbB5kqhNVUlrEmlFWMMuSD8" 
             alt="Contact Hero" 
             className="w-full h-full object-cover object-bottom"
             referrerPolicy="no-referrer"
