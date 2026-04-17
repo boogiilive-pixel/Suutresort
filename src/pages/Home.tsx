@@ -57,12 +57,12 @@ export default function Home() {
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}
-      <section className="relative h-screen w-full flex items-end justify-center text-white overflow-hidden pb-12 md:pb-32">
+      <section className="relative h-screen w-full flex items-end justify-center text-white overflow-hidden pb-24 md:pb-32">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4" 
             alt="Resort Hero" 
-            className="w-full h-full object-cover object-center scale-105 animate-slow-zoom"
+            className="w-full h-full object-cover scale-105 animate-slow-zoom"
             referrerPolicy="no-referrer"
           />
           {/* Gradient Overlays */}

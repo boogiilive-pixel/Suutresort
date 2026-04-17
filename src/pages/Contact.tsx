@@ -14,7 +14,7 @@ export default function Contact() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative h-[40vh] md:h-[60vh] lg:h-[70vh] flex items-center justify-center text-white overflow-hidden pt-20 md:pt-0">
+      <section className="relative h-[70vh] flex items-center justify-center text-white overflow-hidden pt-20">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://lh3.googleusercontent.com/d/1QBsbTB3ikBg2lwJLR0FNh6oPRXi0ARBx" 
@@ -22,6 +22,19 @@ export default function Contact() {
             className="w-full h-full object-cover object-bottom"
             referrerPolicy="no-referrer"
           />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
+        <div className="relative z-10 text-center px-6">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-5xl md:text-6xl font-serif font-bold mb-4"
+          >
+            Холбоо <span className="text-brand-yellow italic">Барих</span>
+          </motion.h1>
+          <p className="text-xl text-white/80 max-w-2xl mx-auto">
+            Бидэнтэй холбогдож асуух зүйлээ тодруулаарай. Бид танд туслахад бэлэн байна.
+          </p>
         </div>
       </section>
 
