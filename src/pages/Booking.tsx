@@ -74,9 +74,9 @@ interface Option {
 }
 
 const options: Option[] = [
-  { id: 'villa-1', type: 'house', title: 'Цэвэр Модон Хаус', price: '600,000₮ - 800,000₮', image: 'https://lh3.googleusercontent.com/d/1bkYndNMWSBofxqecozPc7Y_K-ixIw8yN' },
-  { id: 'villa-2', type: 'house', title: 'Цэвэр Агаарт Вилла', price: '350,000₮', image: 'https://lh3.googleusercontent.com/d/1OWnzvTHAaMOfQ3l0IsMxayzXi6bhNkfd' },
-  { id: 'villa-3', type: 'house', title: 'Гэр бүлийн Вилла', price: '280,000₮', image: 'https://lh3.googleusercontent.com/d/1tiyuEYQ8eHZlLsFng6zYfMCytWSmJha2' },
+  { id: 'villa-1', type: 'house', title: 'Цэвэр Модон Хаус (Тав тух & Халаалт)', price: '600,000₮ - 800,000₮', image: 'https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN' },
+  { id: 'villa-2', type: 'house', title: 'Цэвэр Модон Хаус (Унтлагын хэсэг & Амралт)', price: '600,000₮ - 800,000₮', image: 'https://lh3.googleusercontent.com/d/1OWnzvTHAaMOfQ3l0IsMxayzXi6bhNkfd' },
+  { id: 'villa-3', type: 'house', title: 'Цэвэр Модон Хаус (Тоглоом & Энтертайнмент)', price: '600,000₮ - 800,000₮', image: 'https://lh3.googleusercontent.com/d/1tiyuEYQ8eHZlLsFng6zYfMCytWSmJha2' },
   { id: 'room-1', type: 'room', title: 'Стандарт өрөө', price: '180,000₮', image: 'https://lh3.googleusercontent.com/d/1zoXTewURVSFqXbQvarGOUJV046P0J0DU' },
   { id: 'room-2', type: 'room', title: 'Делюкс өрөө', price: '250,000₮', image: 'https://lh3.googleusercontent.com/d/1mu0C8z2FhG7HJF6vuVEItWV-O2WDkFYa' },
   { id: 'room-3', type: 'room', title: 'Гэр бүлийн өрөө', price: '320,000₮', image: 'https://lh3.googleusercontent.com/d/1zoXTewURVSFqXbQvarGOUJV046P0J0DU' },

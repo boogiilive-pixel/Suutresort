@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 const houses = [
   {
     id: 'villa-1',
-    title: 'Цэвэр Модон Хаус',
-    description: 'Таны тав тухыг дээд зэргээр хангасан, бүрэн тохижуулсан, цэвэр модон хаус түрээсийн үйлчилгээг санал болгож байна.',
+    title: 'Цэвэр Модон Хаус - Тав тух, Халаалт',
+    description: 'Таны тав тухыг дээд зэргээр хангах үүднээс шалны болон нам даралтын халаалттай, шинэ тавилга, том дэлгэцтэй телевизор гэх мэт хэрэгцээт бүх зүйлээр бүрэн тохижуулсан цэвэр модон хаус.',
     capacity: '25 хүртэлх хүн',
     size: '175 м.кв /2 давхар/',
     price: '600,000₮ - 800,000₮ / хоног',
@@ -17,39 +17,49 @@ const houses = [
       { label: 'Баасан, Бямбад хоногоор', value: '800,000₮' }
     ],
     features: [
-      'Шорлогны зуухтай 😋',
       '25 хүний багтаамжтай 🤩',
-      '7 ор /double size/',
-      'Нэмэлтээр маш тухтай 10 эвхдэг ор, 20 мишок',
-      '2 унтлагын өрөөтэй 🛌',
-      'Шинэ тавилгуудтай /80’ TV, хөргөгч, дуков/',
-      'Караоке, камен зуух, чимэглэлтэй 🎤🎼',
-      'Биллиард, даалуу, шатартай 🎱',
       'Халаалттай /шалны & нам даралтын цахилгаан/',
-      'Гал тогооны иж бүрэн хэрэгсэлтэй /25 хүний/',
-      '2 ариун цэврийн өрөөтэй 🔥',
-      'Захиалгаар энгийн, баярын хоол гарна. 👨‍🍳'
+      'Шинэ тавилгуудтай /80’ TV, хөргөгч, дуков/',
+      '2 ариун цэврийн өрөөтэй 🔥'
     ],
-    image: 'https://lh3.googleusercontent.com/d/1bkYndNMWSBofxqecozPc7Y_K-ixIw8yN'
+    image: 'https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN'
   },
   {
     id: 'villa-2',
-    title: 'Цэвэр Агаарт Вилла',
-    description: 'Ой модны захад байрлах, байгальтайгаа хамгийн ойрхон мэдрэмжийг төрүүлэх вилла.',
-    capacity: '4-6 хүн',
-    size: '90 м.кв',
-    price: '350,000₮ / хоног',
-    features: ['2 унтлагын өрөө', '1 ариун цэврийн өрөө', 'Гал тогоо', 'Зочны өрөө', 'Террас'],
+    title: 'Цэвэр Модон Хаус - Унтлагын хэсэг & Амралт',
+    description: 'Маш тохилог 2 том унтлагын өрөө болон гэр бүл, найз нөхдөөрөө хангалттай унтаж амрах ор, зөөлөн мишок зэрэг унтлагын иж бүрэн бэлдэц, тоног төхөөрөмжтэй.',
+    capacity: '25 хүртэлх хүн',
+    size: '175 м.кв /2 давхар/',
+    price: '600,000₮ - 800,000₮ / хоног',
+    prices: [
+      { label: 'Ням-Пүрэв хоногоор', value: '600,000₮' },
+      { label: 'Баасан, Бямбад хоногоор', value: '800,000₮' }
+    ],
+    features: [
+      '2 унтлагын өрөөтэй 🛌',
+      '7 ор /double size/',
+      'Нэмэлтээр маш тухтай 10 эвхдэг ор, 20 мишок',
+      'Гал тогооны иж бүрэн хэрэгсэлтэй /25 хүний/'
+    ],
     image: 'https://lh3.googleusercontent.com/d/1OWnzvTHAaMOfQ3l0IsMxayzXi6bhNkfd'
   },
   {
     id: 'villa-3',
-    title: 'Гэр бүлийн Вилла',
-    description: 'Бага насны хүүхэдтэй гэр бүлд зориулсан, аюулгүй, тав тухтай орчинтой вилла.',
-    capacity: '4 хүн',
-    size: '75 м.кв',
-    price: '280,000₮ / хоног',
-    features: ['2 унтлагын өрөө', '1 ариун цэврийн өрөө', 'Гал тогоо', 'Зочны өрөө', 'Террас'],
+    title: 'Цэвэр Модон Хаус - Тоглоом & Энтертайнмент',
+    description: 'Амралтын өдрөө улам сонирхолтой болгох караоке, биллиард, ширээний тоглоомуудтай бөгөөд гадаа талбайд шорлог хийж, захиалгаар амтлаг хоолоор үйлчлүүлэх боломжтой.',
+    capacity: '25 хүртэлх хүн',
+    size: '175 м.кв /2 давхар/',
+    price: '600,000₮ - 800,000₮ / хоног',
+    prices: [
+      { label: 'Ням-Пүрэв хоногоор', value: '600,000₮' },
+      { label: 'Баасан, Бямбад хоногоор', value: '800,000₮' }
+    ],
+    features: [
+      'Караоке, камен зуух, чимэглэлтэй 🎤🎼',
+      'Биллиард, даалуу, шатартай 🎱',
+      'Шорлогны зуухтай 😋',
+      'Захиалгаар энгийн, баярын хоол гарна. 👨‍🍳'
+    ],
     image: 'https://lh3.googleusercontent.com/d/1tiyuEYQ8eHZlLsFng6zYfMCytWSmJha2'
   }
 ];
@@ -142,7 +152,7 @@ export default function Houses() {
                 <div className="pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-brand-teal/10">
                   <div>
                     <span className="text-xs text-brand-teal/50 block uppercase tracking-wider mb-1">Үнэ</span>
-                    {'prices' in house ? (
+                    {('prices' in house) ? (
                       <div className="space-y-1.5 bg-brand-teal/5 p-3 rounded-lg border border-brand-teal/10">
                         {(house as any).prices.map((p: any, idx: number) => (
                           <div key={idx} className="text-xs md:text-sm flex items-center justify-between gap-4">
@@ -152,7 +162,7 @@ export default function Houses() {
                         ))}
                       </div>
                     ) : (
-                      <span className="text-2xl font-bold text-brand-teal">{house.price}</span>
+                      <span className="text-2xl font-bold text-brand-teal">{(house as any).price}</span>
                     )}
                   </div>
                   <Link to="/booking" className="btn-primary flex items-center justify-center gap-2 group self-start sm:self-center">

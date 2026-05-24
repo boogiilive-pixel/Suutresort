@@ -15,7 +15,7 @@ const highlights = [
     title: 'Бүрэн тохижуулсан, цэвэр модон хаус',
     description: 'Хүнсээ аваад очиход л бүх хэрэгтэй зүйлс нь бэлэн, бүрэн тохижуулсан хаус таныг хүлээж байна.',
     icon: <HomeIcon className="text-brand-red" size={32} />,
-    image: 'https://lh3.googleusercontent.com/d/1bkYndNMWSBofxqecozPc7Y_K-ixIw8yN'
+    image: 'https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN'
   },
   {
     title: 'Тохилог өрөөнүүд',
@@ -346,7 +346,7 @@ export default function Home() {
               <div className="p-4">
                 <div className="aspect-[16/10] rounded-xl overflow-hidden relative group">
                   <img 
-                    src="https://lh3.googleusercontent.com/d/1bkYndNMWSBofxqecozPc7Y_K-ixIw8yN" 
+                    src="https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN" 
                     alt="House Rental" 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     referrerPolicy="no-referrer"
