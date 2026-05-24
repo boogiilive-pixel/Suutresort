@@ -33,7 +33,7 @@ export default function Contact() {
             Холбоо <span className="text-brand-yellow italic">Барих</span>
           </motion.h1>
           <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Бидэнтэй холбогдож асуух зүйлээ тодруулаарай. Бид танд туслахад бэлэн байна.
+            Бидэнтэй холбогдож, асуух зүйлээ тодруулаарай. Танд туслахад бид хэзээд бэлэн.
           </p>
         </div>
       </section>
@@ -65,7 +65,6 @@ export default function Contact() {
                 </div>
                 <h4 className="font-bold text-brand-teal">И-мэйл</h4>
                 <p className="text-sm text-brand-teal/70">info@suutresort.com</p>
-                <p className="text-sm text-brand-teal/70">booking@suutresort.com</p>
               </div>
 
               <div className="p-8 bg-brand-teal/5 rounded-2xl border border-brand-teal/10 space-y-4">
@@ -73,7 +72,7 @@ export default function Contact() {
                   <MapPin size={24} />
                 </div>
                 <h4 className="font-bold text-brand-teal">Хаяг</h4>
-                <p className="text-sm text-brand-teal/70">Монгол улс, Улаанбаатар, +59 Баянчандмань</p>
+                <p className="text-sm text-brand-teal/70">Монгол улс, Төв аймаг, Баянчандмань сум, 3-р баг, Хөшөөтийн Ар, Суут Ресорт</p>
                 <a 
                   href="https://maps.app.goo.gl/zPp1JUX1TBpVqYkt5" 
                   target="_blank" 
@@ -89,7 +88,6 @@ export default function Contact() {
                   <Clock size={24} />
                 </div>
                 <h4 className="font-bold text-brand-teal">Цагийн хуваарь</h4>
-                <p className="text-sm text-brand-teal/70">Даваа - Ням: 09:00 - 22:00</p>
                 <p className="text-sm text-brand-teal/70">24/7 Захиалга хүлээн авна</p>
               </div>
             </div>

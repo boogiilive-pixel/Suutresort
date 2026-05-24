@@ -123,8 +123,8 @@ export default function Booking() {
         email: formData.email,
         adults: adults,
         children: children,
-        optionId: selectedOption?.id,
-        optionTitle: selectedOption?.title,
+        bookingType: selectedType,
+        optionTitle: selectedType === 'house' ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт',
         checkIn: selectedRange?.from ? format(selectedRange.from, 'yyyy-MM-dd') : '',
         checkOut: selectedRange?.to ? format(selectedRange.to, 'yyyy-MM-dd') : '',
         status: 'pending',
@@ -162,7 +162,7 @@ export default function Booking() {
             Амралтаа <span className="text-brand-yellow italic">Захиалах</span>
           </motion.h1>
           <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Та өөрт таалагдсан хаус эсвэл өрөөгөө сонгон захиалгаа өгөөрэй.
+            Та өөрт таалагдсан хаус эсвэл амралт/ресортоо сонгон захиалгаа өгөөрэй.
           </p>
         </div>
       </section>
@@ -172,7 +172,7 @@ export default function Booking() {
         {/* Progress Bar */}
         <div className="mb-12">
           <div className="flex justify-between mb-4">
-            {['Төрөл сонгох', 'Сонголт', 'Хугацаа', 'Мэдээлэл'].map((label, i) => (
+            {['Төрөл сонгох', 'Хугацаа', 'Мэдээлэл'].map((label, i) => (
               <div key={i} className={cn(
                 "text-xs font-bold uppercase tracking-widest transition-colors",
                 step > i ? "text-brand-teal" : "text-brand-teal/30"
@@ -184,7 +184,7 @@ export default function Booking() {
           <div className="h-2 bg-brand-teal/10 rounded-full overflow-hidden">
             <motion.div 
               initial={{ width: 0 }}
-              animate={{ width: `${(step / 4) * 100}%` }}
+              animate={{ width: `${(step / 3) * 100}%` }}
               className="h-full bg-brand-teal"
             />
           </div>
@@ -211,7 +211,12 @@ export default function Booking() {
                 </div>
                   <div className="p-6 bg-brand-teal/5 rounded-2xl text-left space-y-3 max-w-md mx-auto border border-brand-teal/10">
                     <div className="flex justify-between text-sm"><span className="text-brand-teal/50">Захиалагч:</span> <span className="font-bold text-brand-teal">{formData.name}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-brand-teal/50">Сонголт:</span> <span className="font-bold text-brand-teal">{selectedOption?.title}</span></div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-brand-teal/50">Сонголт:</span> 
+                      <span className="font-bold text-brand-teal">
+                        {selectedType === 'house' ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт'}
+                      </span>
+                    </div>
                     <div className="flex justify-between text-sm"><span className="text-brand-teal/50">Хугацаа:</span> <span className="font-bold text-brand-teal">
                       {selectedRange?.from && format(selectedRange.from, 'MM/dd')} - {selectedRange?.to && format(selectedRange.to, 'MM/dd')}
                     </span></div>
@@ -232,7 +237,7 @@ export default function Booking() {
                   <div className="space-y-8">
                     <div className="text-center space-y-2">
                       <h2 className="text-3xl font-serif font-bold text-brand-teal">Захиалгын төрөл сонгох</h2>
-                      <p className="text-brand-teal/60">Та хаус эсвэл өрөөний аль нэгийг сонгоно уу.</p>
+                      <p className="text-brand-teal/60">Та хаус эсвэл амралт/ресортын аль нэгийг сонгоно уу.</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <button 
@@ -244,7 +249,7 @@ export default function Booking() {
                         </div>
                         <div className="space-y-2">
                           <h3 className="text-2xl font-serif font-bold text-brand-teal uppercase">ХАУС</h3>
-                          <p className="text-sm text-brand-teal/60">Гэр бүл, найз нөхдөөрөө амрахад тохиромжтой.</p>
+                          <p className="text-sm text-brand-teal/60 font-medium">25 хүртэлх тооны хамт олон, гэр бүл, найз нөхдөөрөө амрахад тохиромжтой.</p>
                         </div>
                       </button>
                       <button 
@@ -255,47 +260,16 @@ export default function Booking() {
                           <Bed size={40} />
                         </div>
                         <div className="space-y-2">
-                          <h3 className="text-2xl font-serif font-bold text-brand-teal uppercase">ӨРӨӨ</h3>
-                          <p className="text-sm text-brand-teal/60">Хосоороо эсвэл цөөнүүлээ амрахад тохиромжтой.</p>
+                          <h3 className="text-2xl font-serif font-bold text-brand-teal uppercase">АМРАЛТ/РЕСОРТ</h3>
+                          <p className="text-sm text-brand-teal/60 font-medium">Байгууллага, хамт олны нэгдсэн арга хэмжээ хийхэд илүү тохиромжтой.</p>
                         </div>
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* Step 2: Option Selection */}
+                {/* Step 2: Date & Guests */}
                 {step === 2 && (
-                  <div className="space-y-8">
-                    <div className="flex items-center justify-between">
-                      <button onClick={handleBack} className="text-brand-teal font-bold flex items-center gap-2 hover:translate-x-1 transition-transform">← Буцах</button>
-                      <h2 className="text-2xl font-serif font-bold text-brand-teal">Сонголт хийх</h2>
-                      <div className="w-20" />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {options.filter(o => o.type === selectedType).map(option => (
-                        <button 
-                          key={option.id}
-                          onClick={() => { setSelectedOption(option); handleNext(); }}
-                          className={cn(
-                            "group text-left bg-white border-2 rounded-2xl overflow-hidden transition-all",
-                            selectedOption?.id === option.id ? "border-brand-teal shadow-xl" : "border-brand-teal/5 hover:border-brand-teal/30"
-                          )}
-                        >
-                          <div className="h-40 overflow-hidden">
-                            <img src={option.image} alt={option.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                          </div>
-                          <div className="p-4 space-y-2">
-                            <h4 className="font-bold text-brand-teal">{option.title}</h4>
-                            <p className="text-brand-green font-bold">{option.price}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Date & Guests */}
-                {step === 3 && (
                   <div className="space-y-8">
                     <div className="flex items-center justify-between">
                       <button onClick={handleBack} className="text-brand-teal font-bold flex items-center gap-2">← Буцах</button>
@@ -388,8 +362,8 @@ export default function Booking() {
                   </div>
                 )}
 
-                {/* Step 4: Contact Info */}
-                {step === 4 && (
+                {/* Step 3: Contact Info */}
+                {step === 3 && (
                   <div className="space-y-8">
                     <div className="flex items-center justify-between">
                       <button onClick={handleBack} className="text-brand-teal font-bold flex items-center gap-2">← Буцах</button>
@@ -440,7 +414,7 @@ export default function Booking() {
                           <div className="space-y-4">
                             <div className="flex justify-between items-center">
                               <span className="text-white/60 text-sm">Сонголт:</span>
-                              <span className="font-bold">{selectedOption?.title}</span>
+                              <span className="font-bold">{selectedType === 'house' ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт'}</span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-white/60 text-sm">Хугацаа:</span>
@@ -455,7 +429,9 @@ export default function Booking() {
                             </div>
                             <div className="pt-4 border-t border-white/10 flex justify-between items-center">
                               <span className="text-lg font-serif">Нийт үнэ:</span>
-                              <span className="text-2xl font-bold text-brand-yellow">{selectedOption?.price}</span>
+                              <span className="text-2xl font-bold text-brand-yellow">
+                                {selectedType === 'house' ? '600,000₮ - 800,000₮' : '180,000₮ - 320,000₮'}
+                              </span>
                             </div>
                           </div>
                         </div>

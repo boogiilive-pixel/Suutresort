@@ -20,7 +20,7 @@ const galleryItems = [
   { id: 11, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1fWwKCW7vLNqrj6QSMm1k2EO9CEtrOT__' },
 ];
 
-const categories = ['Бүгд', 'Байгаль', 'Өрөө', 'Байшин'];
+const categories = ['Бүгд', 'Байгаль', 'Амралт', 'Хаус'];
 
 export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState('Бүгд');
@@ -29,8 +29,8 @@ export default function Gallery() {
   const filteredItems = galleryItems.filter(item => {
     if (activeCategory === 'Бүгд') return true;
     if (activeCategory === 'Байгаль') return item.category === 'Nature';
-    if (activeCategory === 'Өрөө') return item.category === 'Rooms';
-    if (activeCategory === 'Байшин') return item.category === 'Houses';
+    if (activeCategory === 'Амралт') return item.category === 'Rooms';
+    if (activeCategory === 'Хаус') return item.category === 'Houses';
     return true;
   });
 
