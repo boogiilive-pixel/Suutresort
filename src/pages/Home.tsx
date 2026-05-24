@@ -93,7 +93,7 @@ export default function Home() {
             transition={{ delay: 0.6 }}
             className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto"
           >
-            Тав тухтай үйлчилгээ, найрсаг орчин, байгалийн үзэсгэлэн таныг хүлээж байна.
+            Тав тухтай орчин, амт чанартай хоол, найрсаг хамт олон таныг хүлээж байна.
           </motion.p>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}

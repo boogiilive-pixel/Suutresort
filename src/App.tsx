@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import Experience from './pages/Experience';
 import Houses from './pages/Houses';
+import EcoTour from './pages/EcoTour';
 import Rooms from './pages/Rooms';
 import Booking from './pages/Booking';
 import Gallery from './pages/Gallery';
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/experience" element={<Experience />} />
           <Route path="/houses" element={<Houses />} />
+          <Route path="/eco-tour" element={<EcoTour />} />
           <Route path="/rooms" element={<Rooms />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="/gallery" element={<Gallery />} />

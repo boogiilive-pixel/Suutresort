@@ -7,7 +7,8 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { name: 'Нүүр', path: '/' },
   { name: 'Амралт', path: '/experience' },
-  { name: 'Байшин', path: '/houses' },
+  { name: 'Хаус', path: '/houses' },
+  { name: 'Эко Аялал', path: '/eco-tour' },
   { name: 'Өрөө', path: '/rooms' },
   { name: 'Захиалга', path: '/booking' },
   { name: 'Галерей', path: '/gallery' },
