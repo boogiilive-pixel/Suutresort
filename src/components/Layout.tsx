@@ -9,7 +9,6 @@ const navItems = [
   { name: 'Амралт', path: '/experience' },
   { name: 'Хаус', path: '/houses' },
   { name: 'Эко Аялал', path: '/eco-tour' },
-  { name: 'Өрөө', path: '/rooms' },
   { name: 'Захиалга', path: '/booking' },
   { name: 'Галерей', path: '/gallery' },
   { name: 'Холбоо барих', path: '/contact' },

@@ -712,7 +712,7 @@ export default function Home() {
           <h2 className="text-4xl md:text-6xl font-serif font-bold">Таны амралт <br /> эндээс эхэлнэ</h2>
           <p className="text-xl text-white/80">Одоо захиалгаа өгөөд байгалийн сайханд амарч, эрч хүчээ сэлбээрэй.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Link to="/booking" className="btn-primary bg-brand-yellow text-brand-teal hover:bg-white px-12 py-4 text-lg border-none">Захиалах</Link>
+            <Link to="/booking" className="px-12 py-4 bg-white text-brand-teal hover:bg-brand-yellow rounded-full font-bold text-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 shadow-md block w-full sm:w-auto text-center">Захиалах</Link>
             <div className="flex items-center gap-4 text-lg font-medium">
               <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
                 <Users size={24} />

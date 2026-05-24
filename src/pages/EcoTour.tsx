@@ -1,39 +1,95 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Compass, BookOpen, Heart, Smile, Trees, Award, Utensils, CalendarDays, Leaf, LucideIcon } from 'lucide-react';
+import { Compass, BookOpen, Heart, Smile, Trees, Award, Utensils, CalendarDays, Leaf, LucideIcon, Snowflake, Trophy, Home, Clock, Tag, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-interface ProgramCardProps {
+interface TourProgram {
   title: string;
+  subtitle: string;
+  price: string;
+  time: string;
+  bgGradient: string;
+  textColor: string;
+  accentColor: string;
+  icon: React.ReactNode;
+  image: string;
   description: string;
-  icon: React.ReactElement<LucideIcon>;
-  colorClass: string;
+  steps: string[];
 }
 
-const programs: ProgramCardProps[] = [
+const tours: TourProgram[] = [
   {
-    title: 'Танин мэдэхүйн уралдаан',
-    description: 'Байгаль эх, ургамал моддыг танин мэдэх сонирхолтой асуулт хариулт болон хөгжөөнт тэмцээнүүд.',
-    icon: <BookOpen className="text-brand-yellow" size={32} />,
-    colorClass: 'bg-brand-yellow/10 border-brand-yellow/20'
+    title: 'НАМРЫН СПАРТАКИАД',
+    subtitle: 'Спорт, танин мэдэхүйн өдрийн аялал',
+    price: '69,000₮',
+    time: '09:00 - 18:00',
+    bgGradient: 'from-amber-500/10 to-orange-500/5',
+    textColor: 'text-amber-600',
+    accentColor: 'border-amber-200/50',
+    icon: <Trophy className="text-amber-600" size={32} />,
+    image: 'https://lh3.googleusercontent.com/d/13GA1tn0W7kb1SPGXX5qOFcgsHPh4Astm',
+    description: 'Ой модны зах, хээрийн цэвэр агаарт анги хамт олон, сургуулиудаараа спортын 5 төрөлт уралдаан тэмцээнээр хамтдаа өрсөлдөж, нэг өдрийг эрүүл чийрэг, хөгжилтэй өнгөрүүлэх шилдэг хөтөлбөр.',
+    steps: [
+      'Сургуулиас хөдлөх',
+      'Амралтын газар байрлах',
+      'Нээлт',
+      'Өдрийн хоол',
+      'Намрын спартакиад /5 төрөлт тэмцээн/',
+      'Хөгжөөнт тоглоом',
+      'Шагнал гардуулах',
+      'Байгальд зураг даруулах',
+      'Үдийн цай',
+      'Сургууль дээр буцаж ирэх'
+    ]
   },
   {
-    title: 'Байгаль орчны танин мэдэхүй',
-    description: 'Ой модны экосистем, ургамал амьтдыг хамгаалах чиглэлээр практик болон танин мэдэхүйн зааварчилгаа.',
-    icon: <Trees className="text-brand-green" size={32} />,
-    colorClass: 'bg-brand-green/10 border-brand-green/20'
+    title: 'ЦАСНЫ БАЯР ӨВЛИЙН КЕМП',
+    subtitle: 'Өвлийн гайхамшиг, цасан тоглоом бүхий өдрийн аялал',
+    price: '69,000₮',
+    time: '09:00 - 18:00',
+    bgGradient: 'from-sky-500/10 to-blue-500/5',
+    textColor: 'text-sky-600',
+    accentColor: 'border-sky-200/50',
+    icon: <Snowflake className="text-sky-600" size={32} />,
+    image: 'https://lh3.googleusercontent.com/d/1U1e3LyMhemPBnDOgIS__Q0GGqDW1-CLZ',
+    description: 'Мөнх цагаан хучлагатай байгалийн үзэсгэлэн дунд цасны сумо, цасан хүн хийх зэрэг уламжлалт болон орчин үеийн хөгжөөнт цасан тоглоомоор наадаж, өвөрмөц дурсамж бүтээх хөтөлбөр.',
+    steps: [
+      'Сургуулиас хөдлөх',
+      'Амралтын газар байрлах',
+      'Нээлт',
+      'Өдрийн хоол',
+      'Цасны баяр',
+      'Хөгжөөнт тоглоом /цасны сумо, цасан хүн хийх гэх мэт/',
+      'Шагнал гардуулах',
+      'Байгальд зураг даруулах',
+      'Үдийн цай',
+      'Сургууль дээр буцаж ирэх'
+    ]
   },
   {
-    title: 'Хөгжөөнт тоглоомууд',
-    description: 'Нөхөрсөг уур амьсгал бүрдүүлж, багаар ажиллах чадвар суулгах хөгжөөнт тоглоом, дасгалууд.',
-    icon: <Smile className="text-brand-blue" size={32} />,
-    colorClass: 'bg-brand-blue/10 border-brand-blue/20'
-  },
-  {
-    title: 'Амтат өдрийн хоол',
-    description: 'Хүүхэд бүрт тохирсон амтлаг бөгөөд эрүүл ахуйн шаардлага хангасан өдрийн хоол, амттан.',
-    icon: <Utensils className="text-brand-red" size={32} />,
-    colorClass: 'bg-brand-red/10 border-brand-red/20'
+    title: 'ШИНЭ ТӨЛ - МАЛЧИН АЙЛААР ЗОЧЛОХ',
+    subtitle: 'Монгол ахуй, төл малтай танилцах танин мэдэхүйн аялал',
+    price: '69,000₮',
+    time: '09:00 - 18:00',
+    bgGradient: 'from-purple-500/10 to-indigo-500/5',
+    textColor: 'text-purple-600',
+    accentColor: 'border-purple-200/50',
+    icon: <Home className="text-purple-600" size={32} />,
+    image: 'https://lh3.googleusercontent.com/d/1qqZave8LLe9joFMOXmoWOeZ_ZzV5dSni',
+    description: 'Малчин айлын өдөр тутмын ажил, Монголын нүүдэлчин ахуй соёлтой биечлэн танилцуулж, шинээр төрсөн өхөөрдөм хөөрхөн төл малтай тоглуулан, байгалийг хайрлах чин сэтгэл суулгах хүмүүжлийн хөтөлбөр.',
+    steps: [
+      'Сургуулиас хөдлөх',
+      'Амралтын газар байрлах',
+      'Нээлт',
+      'Өдрийн хоол',
+      'Малчин айлд зочлох',
+      'Монгол ахуйтай танилцах',
+      'Хөгжөөнт тоглоом',
+      'Шагнал гардуулах',
+      'Төл малтай зураг даруулах',
+      'Үдийн цай',
+      'Сургууль дээр буцаж ирэх'
+    ]
   }
 ];
 
@@ -132,7 +188,7 @@ export default function EcoTour() {
               className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl"
             >
               <img 
-                src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=1200" 
+                src="https://lh3.googleusercontent.com/d/1cyZi2uOXBioL3FnouNH4_WYdClCnNrVj" 
                 alt="Students in Nature" 
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
@@ -148,26 +204,94 @@ export default function EcoTour() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto space-y-4 mb-16">
             <span className="text-brand-green font-bold tracking-widest uppercase text-sm block">ХӨТӨЛБӨРИЙН СОНГОЛТУУД</span>
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-brand-teal">Аяллын сонирхолтой үйл ажиллагаанууд</h2>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-brand-teal">Сонголттой Эко Аяллууд</h2>
             <p className="text-brand-teal/60">Сурагчдын сонирхол, насны онцлогт тохирсон өдөрт аяллын хөтөлбөрүүд.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {programs.map((program, idx) => (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {tours.map((tour, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="bg-white p-8 md:p-10 rounded-3xl border border-brand-teal/5 shadow-lg flex flex-col md:flex-row items-start gap-6 hover:shadow-xl transition-all"
+                className="bg-white rounded-3xl overflow-hidden shadow-lg border border-brand-teal/5 flex flex-col justify-between hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
               >
-                <div className={`p-4 rounded-2xl shrink-0 flex items-center justify-center ${program.colorClass}`}>
-                  {program.icon}
+                {/* Hero Image & Floating Badges */}
+                <div className="h-56 relative overflow-hidden group">
+                  <img 
+                    src={tour.image} 
+                    alt={tour.title} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                  
+                  {/* Price Tag */}
+                  <div className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-brand-yellow font-bold text-sm text-brand-teal shadow-md">
+                    <Tag size={14} />
+                    <span>{tour.price}</span>
+                  </div>
+
+                  {/* Time Badge */}
+                  <div className="absolute bottom-4 right-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/60 text-white backdrop-blur-md text-xs font-semibold shadow-md border border-white/10">
+                    <Clock size={12} />
+                    <span>{tour.time}</span>
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  <h3 className="text-xl font-bold text-brand-teal">{program.title}</h3>
-                  <p className="text-brand-teal/70 leading-relaxed text-sm md:text-base">{program.description}</p>
+
+                {/* Card Body */}
+                <div className="p-6 md:p-8 space-y-6 flex-grow">
+                  {/* Title & Icon Header */}
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-brand-teal/5 rounded-2xl border border-brand-teal/10 shrink-0">
+                      {tour.icon}
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-xs font-bold text-brand-green uppercase tracking-wider block">
+                        ӨДРИЙН АЯЛАЛ
+                      </span>
+                      <h3 className="text-xl font-bold font-serif text-brand-teal leading-tight tracking-tight">
+                        {tour.title}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-brand-teal/70 leading-relaxed text-sm">
+                    {tour.description}
+                  </p>
+
+                  {/* Program Steps (Timeline Itinerary) */}
+                  <div className="space-y-3 pt-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-brand-teal/60 flex items-center gap-1.5">
+                      <CalendarDays size={14} className="text-brand-green" />
+                      Аяллын хөтөлбөр дараалал:
+                    </h4>
+                    
+                    <div className="grid grid-cols-1 gap-1.5 text-xs text-brand-teal/85 bg-brand-teal/5 p-4 rounded-2xl border border-brand-teal/5">
+                      {tour.steps.map((step, sIdx) => (
+                        <div key={sIdx} className="flex items-center gap-2">
+                          <span className="w-5 h-5 bg-brand-teal/10 text-brand-teal font-semibold rounded-full flex items-center justify-center text-[10px] shrink-0">
+                            {sIdx + 1}
+                          </span>
+                          <span className="font-medium truncate">{step}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Footer Button */}
+                <div className="p-6 pt-0 border-t border-brand-teal/5">
+                  <Link 
+                    to="/booking" 
+                    className="w-full text-center py-3.5 rounded-2xl font-bold bg-brand-teal text-white hover:bg-brand-teal/95 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1.5 group text-sm"
+                  >
+                    <span>Аялал захиалах</span>
+                    <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
                 </div>
               </motion.div>
             ))}
@@ -176,9 +300,15 @@ export default function EcoTour() {
       </section>
 
       {/* Call to Action */}
-      <section className="relative py-24 px-6 text-white overflow-hidden bg-brand-teal text-center">
-        <div className="absolute inset-0 z-0 opacity-10">
-          <div className="absolute inset-0 bg-grid-pattern" />
+      <section className="relative py-24 px-6 text-white overflow-hidden text-center">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2000" 
+            alt="CTA Background" 
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-teal/60 via-brand-teal/90 to-brand-teal" />
         </div>
         <div className="relative z-10 max-w-3xl mx-auto space-y-8">
           <h2 className="text-3xl md:text-5xl font-serif font-bold">Хүүхэд багачууддаа мартагдашгүй нэг өдрийг бэлэглэцгээе</h2>
@@ -186,8 +316,8 @@ export default function EcoTour() {
             Сургууль, анги хамт олноороо холбогдон эко аяллаа төлөвлөөрэй. Бид тав тух, аюулгүй байдал, цогц хөтөлбөрийг санал болгож байна.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link to="/booking" className="btn-primary py-4 px-8 text-base">Захиалга өгөх</Link>
-            <Link to="/contact" className="btn-outline border-white/40 text-white hover:bg-white hover:text-brand-teal py-4 px-8 text-base">Холбоо барих</Link>
+            <Link to="/booking" className="px-8 py-4 bg-brand-yellow text-brand-teal rounded-full font-bold text-base transition-all hover:bg-white hover:text-brand-teal hover:scale-105 hover:shadow-xl active:scale-95 shadow-md block w-full sm:w-auto">Захиалга өгөх</Link>
+            <Link to="/contact" className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold text-base transition-all hover:bg-white hover:text-brand-teal hover:scale-105 active:scale-95 block w-full sm:w-auto">Холбоо барих</Link>
           </div>
         </div>
       </section>
