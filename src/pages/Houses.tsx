@@ -7,17 +7,34 @@ import { cn } from '@/lib/utils';
 const houses = [
   {
     id: 'villa-1',
-    title: 'Тав тухтай Вилла',
-    description: 'Гэр бүл, найз нөхдөөрөө амрахад хамгийн тохиромжтой, орчин үеийн шийдэл бүхий тав тухтай вилла.',
-    capacity: '6-8 хүн',
-    size: '120 м.кв',
-    price: '450,000₮ / хоног',
-    features: ['3 унтлагын өрөө', '2 ариун цэврийн өрөө', 'Гал тогоо', 'Зочны өрөө', 'Террас'],
-    image: 'https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN'
+    title: 'Цэвэр Модон Хаус',
+    description: 'Таны тав тухыг дээд зэргээр хангасан, бүрэн тохижуулсан, цэвэр модон хаус түрээсийн үйлчилгээг санал болгож байна.',
+    capacity: '25 хүртэлх хүн',
+    size: '175 м.кв /2 давхар/',
+    price: '600,000₮ - 800,000₮ / хоног',
+    prices: [
+      { label: 'Ням-Пүрэв хоногоор', value: '600,000₮' },
+      { label: 'Баасан, Бямбад хоногоор', value: '800,000₮' }
+    ],
+    features: [
+      'Шорлогны зуухтай 😋',
+      '25 хүний багтаамжтай 🤩',
+      '7 ор /double size/',
+      'Нэмэлтээр маш тухтай 10 эвхдэг ор, 20 мишок',
+      '2 унтлагын өрөөтэй 🛌',
+      'Шинэ тавилгуудтай /80’ TV, хөргөгч, дуков/',
+      'Караоке, камен зуух, чимэглэлтэй 🎤🎼',
+      'Биллиард, даалуу, шатартай 🎱',
+      'Халаалттай /шалны & нам даралтын цахилгаан/',
+      'Гал тогооны иж бүрэн хэрэгсэлтэй /25 хүний/',
+      '2 ариун цэврийн өрөөтэй 🔥',
+      'Захиалгаар энгийн, баярын хоол гарна. 👨‍🍳'
+    ],
+    image: 'https://lh3.googleusercontent.com/d/1bkYndNMWSBofxqecozPc7Y_K-ixIw8yN'
   },
   {
     id: 'villa-2',
-    title: 'Ой модны Вилла',
+    title: 'Цэвэр Агаарт Вилла',
     description: 'Ой модны захад байрлах, байгальтайгаа хамгийн ойрхон мэдрэмжийг төрүүлэх вилла.',
     capacity: '4-6 хүн',
     size: '90 м.кв',
@@ -44,24 +61,27 @@ export default function Houses() {
       <section className="relative h-[70vh] flex items-center justify-center text-white overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://lh3.googleusercontent.com/d/1CS7XHvUWir3_JHVNnSFKQ9bCrhAzN-Dx" 
+            src="https://lh3.googleusercontent.com/d/1bkYndNMWSBofxqecozPc7Y_K-ixIw8yN" 
             alt="Houses Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>
-        <div className="relative z-10 text-center px-6">
+        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-6xl font-serif font-bold mb-4"
+            className="text-5xl md:text-6xl font-serif font-bold mb-6"
           >
-            Тав тухтай <span className="text-brand-yellow italic">Вилла</span>
+            Цэвэр <span className="text-brand-yellow italic">Модон Хаус</span>
           </motion.h1>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Таны тав тухыг дээд зэргээр хангасан, байгалийн үзэсгэлэнт газарт байрлах байшингууд.
+          <p className="text-lg md:text-xl text-white/95 max-w-2xl mx-auto mb-6 leading-relaxed">
+            Таны тав тухыг дээд зэргээр хангасан, бүрэн тохижуулсан, цэвэр модон хаус түрээсийн үйлчилгээг санал болгож байна.
           </p>
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-black/40 backdrop-blur-md rounded-full text-sm font-medium text-brand-yellow border border-brand-yellow/30 shadow-lg">
+            <span>📍 УБ-Дархан явах замд, 52-ын даваа уруудаад төв замаас 500м</span>
+          </div>
         </div>
       </section>
 
@@ -119,12 +139,23 @@ export default function Houses() {
                   </div>
                 </div>
 
-                <div className="pt-6 flex items-center justify-between border-t border-brand-teal/10">
+                <div className="pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-brand-teal/10">
                   <div>
-                    <span className="text-sm text-brand-teal/50 block">Үнэ</span>
-                    <span className="text-2xl font-bold text-brand-teal">{house.price}</span>
+                    <span className="text-xs text-brand-teal/50 block uppercase tracking-wider mb-1">Үнэ</span>
+                    {'prices' in house ? (
+                      <div className="space-y-1.5 bg-brand-teal/5 p-3 rounded-lg border border-brand-teal/10">
+                        {(house as any).prices.map((p: any, idx: number) => (
+                          <div key={idx} className="text-xs md:text-sm flex items-center justify-between gap-4">
+                            <span className="text-brand-teal/70 font-medium">{p.label}:</span>
+                            <span className="font-bold text-brand-red">{p.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-2xl font-bold text-brand-teal">{house.price}</span>
+                    )}
                   </div>
-                  <Link to="/booking" className="btn-primary flex items-center gap-2 group">
+                  <Link to="/booking" className="btn-primary flex items-center justify-center gap-2 group self-start sm:self-center">
                     Захиалах <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
