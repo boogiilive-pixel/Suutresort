@@ -43,14 +43,59 @@ const testimonials = [
 ];
 
 const partners = [
-  { name: 'Unitel', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' }, // Placeholder for Unitel
-  { name: 'Mobicom', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
-  { name: 'Khan Bank', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
-  { name: 'Golomt Bank', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
-  { name: 'MCS', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
-  { name: 'APU', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
-  { name: 'Tavan Bogd', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' },
-  { name: 'TDB', logo: 'https://lh3.googleusercontent.com/d/1_6YI8v6_v_v_v_v_v_v_v_v_v_v_v_v' }
+  { name: 'МАЧ' },
+  { name: 'JCS ОУБ' },
+  { name: 'АДРА ОУБ' },
+  { name: 'АМОС ТББ' },
+  { name: 'Богд банк' },
+  { name: 'Мобиком корпораци' },
+  { name: 'Боловсролын Үнэлгээний Төв' },
+  { name: 'Төв аймгийн Газар зохион байгуулалт, геодизи, зурагзүйн газар' },
+  { name: 'Баянчандмань сумын ЗДТГ' },
+  { name: 'Баянчандмань сумын Иргэдийн нийтийн хурал' },
+  { name: 'Баянчандмань сумын МСҮТ' },
+  { name: 'Улаанбаатар Төмөр зам' },
+  { name: 'МҮОНРТ' },
+  { name: 'ШШБЕГ' },
+  { name: 'GIZ' },
+  { name: 'Зүрхний гүнд ТББ' },
+  { name: 'Мөрөөдөл зуслан' },
+  { name: 'Монгол туургатан ХХК' },
+  { name: '"Байгаль эх" лицей МУИС' },
+  { name: '"Шилдэг" сургууль' },
+  { name: '139-р сургууль' },
+  { name: '105-р сургууль' },
+  { name: '34-р сургууль' },
+  { name: 'Улаанбаатар лицей' },
+  { name: '14-р сургууль' },
+  { name: 'Тусгал сургууль' },
+  { name: '17-р сургууль' },
+  { name: '11-р сургууль' },
+  { name: 'Сүүн ундарга хоршоо' },
+  { name: 'Нарийны хоршоо' },
+  { name: 'Шар хадны хоршоо' },
+  { name: 'Сүүн зам хоршоо' },
+  { name: 'Саммит Электроникс ХХК' },
+  { name: 'Алтан тариа ХХК' },
+  { name: 'PC Maлл' },
+  { name: 'Апу ХХК' },
+  { name: 'Оюу толгой ХХК' },
+  { name: 'Таван толгой ХХК' },
+  { name: 'Дашваанжил ХХК' },
+  { name: 'Масс трэйвел' },
+  { name: 'Хурд фото студио' },
+  { name: 'Оюу тур' },
+  { name: 'Мөрөөдөл зуслан' },
+  { name: 'Мэргэн трэйвел' },
+  { name: 'Be боловсролын төв' },
+  { name: 'Юнител ХХК' },
+  { name: 'Мобиком ХХК' },
+  { name: 'Боловсрол ТВ' },
+  { name: 'Хэмнэл 91.7 радио' },
+  { name: 'Гэр бүлийн радио 104.5' },
+  { name: 'Хаан банк' },
+  { name: 'Агуу захирамж' },
+  { name: 'Ваарчны гэр' }
 ];
 
 export default function Home() {
@@ -113,23 +158,23 @@ export default function Home() {
 
 
         {/* Partners Carousel Overlay */}
-        <div className="absolute bottom-0 left-0 w-full py-8 bg-gradient-to-t from-black/50 to-transparent overflow-hidden">
+        <div className="absolute bottom-0 left-0 w-full py-8 bg-gradient-to-t from-black/60 to-transparent overflow-hidden">
           <div className="relative flex overflow-hidden">
             <motion.div 
-              animate={{ x: [0, -1920] }}
+              animate={{ x: ['0%', '-50%'] }}
               transition={{ 
                 x: {
                   repeat: Infinity,
                   repeatType: "loop",
-                  duration: 50,
+                  duration: 150,
                   ease: "linear",
                 },
               }}
-              className="flex gap-24 items-center whitespace-nowrap pr-24"
+              className="flex gap-16 items-center whitespace-nowrap"
             >
-              {[...partners, ...partners, ...partners].map((partner, i) => (
-                <div key={i} className="flex items-center justify-center min-w-[150px]">
-                  <span className="text-xl font-serif font-bold text-white/30 hover:text-white/80 transition-colors cursor-default">
+              {[...partners, ...partners].map((partner, i) => (
+                <div key={i} className="flex items-center justify-center min-w-[150px] px-4">
+                  <span className="text-base md:text-lg font-serif font-medium text-white/45 hover:text-white/90 transition-colors cursor-default select-none">
                     {partner.name}
                   </span>
                 </div>
@@ -166,20 +211,20 @@ export default function Home() {
               
               <div className="px-6 pb-6 pt-2 space-y-4">
                 <div>
-                  <h3 className="text-2xl font-bold text-brand-teal mb-1">ХАУС ТҮРЭЭС</h3>
-                  <p className="text-sm text-gray-500 font-medium">Бүрэн тохижуулсан орчин үеийн хаус</p>
+                  <h3 className="text-2xl font-bold text-brand-teal mb-1">Бүрэн тохижуулсан, цэвэр модон хаус</h3>
+                  <p className="text-sm text-gray-500 font-medium">Анги хамт олон, гэр бүлээрээ амрах таатай орчин</p>
                 </div>
                 
                 <div className="h-px bg-gray-100 w-full" />
                 
                 <div className="flex justify-between items-end">
-                  <div className="space-y-1">
+                  <div className="space-y-1 col-span-1">
                     <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Үнэ</div>
-                    <div className="text-xl font-bold text-brand-teal">450,000₮ <span className="text-xs font-normal text-gray-400">/ хоног</span></div>
+                    <div className="text-xl font-bold text-brand-teal leading-none">600,000₮ - 800,000₮ <span className="block text-xs font-normal text-gray-400 mt-0.5">/ Өдрөөс хамаарна</span></div>
                   </div>
-                  <div className="space-y-1 text-right">
+                  <div className="space-y-1 text-right col-span-1 shrink-0">
                     <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Багтаамж</div>
-                    <div className="text-xl font-bold text-brand-teal">6-12 <span className="text-xs font-normal text-gray-400">хүн</span></div>
+                    <div className="text-xl font-bold text-brand-teal">25 хүртэлх <span className="text-xs font-normal text-gray-400">хүн</span></div>
                   </div>
                 </div>
 
@@ -209,7 +254,7 @@ export default function Home() {
                     referrerPolicy="no-referrer"
                   />
                   <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-brand-teal">
-                    Чанартай сонголт
+                    Мэргэн сонголт
                   </div>
                 </div>
               </div>
@@ -225,11 +270,11 @@ export default function Home() {
                 <div className="flex justify-between items-end">
                   <div className="space-y-1">
                     <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Үнэ</div>
-                    <div className="text-xl font-bold text-brand-teal">250,000₮ <span className="text-xs font-normal text-gray-400">/ хоног</span></div>
+                    <div className="text-xl font-bold text-brand-teal leading-none">150,000₮ <span className="block text-xs font-normal text-gray-400 mt-0.5">/ өдрийн 3 хоол багтсан</span></div>
                   </div>
                   <div className="space-y-1 text-right">
-                    <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Төрөл</div>
-                    <div className="text-xl font-bold text-brand-teal">8 <span className="text-xs font-normal text-gray-400">сонголт</span></div>
+                    <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Төлбөр</div>
+                    <div className="text-xl font-bold text-brand-teal">1 <span className="text-xs font-normal text-gray-400">хоногийн төлбөр</span></div>
                   </div>
                 </div>
 
