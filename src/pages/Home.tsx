@@ -238,6 +238,7 @@ const partners = [
 export default function Home() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (isPaused) return;
@@ -297,7 +298,7 @@ export default function Home() {
             <Link to="/booking" className="btn-primary flex items-center gap-2 group">
               Одоо захиалах <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link to="/experience" className="btn-outline border-white text-white hover:bg-white hover:text-brand-teal">
+            <Link to="/experience" className="px-8 py-3 border-2 border-brand-yellow text-brand-yellow rounded-full font-bold transition-all hover:bg-brand-yellow hover:text-brand-teal active:scale-95 shadow-md">
               Дэлгэрэнгүй үзэх
             </Link>
           </motion.div>
@@ -633,27 +634,50 @@ export default function Home() {
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-6"
                   >
-                    {testimonialSlides[activeSlide].map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="p-6 bg-brand-teal/5 rounded-2xl border border-brand-teal/10 flex flex-col justify-between h-full relative hover:bg-brand-teal/[0.08] transition-all duration-300 shadow-sm"
-                      >
-                        <Quote className="absolute top-4 right-4 text-brand-teal/10 w-8 h-8 pointer-events-none" />
-                        <div>
-                          <div className="flex text-brand-yellow mb-3">
-                            {[...Array(item.rating)].map((_, i) => (
-                              <Star key={i} size={14} fill="currentColor" />
-                            ))}
+                    {testimonialSlides[activeSlide].map((item, idx) => {
+                      const cardKey = `${activeSlide}-${idx}`;
+                      const isExpanded = !!expandedItems[cardKey];
+                      const isLong = item.text.length > 120;
+                      const showText = isLong && !isExpanded 
+                        ? item.text.slice(0, 110) + '...'
+                        : item.text;
+
+                      return (
+                        <div
+                          key={idx}
+                          className="p-6 bg-brand-teal/5 rounded-2xl border border-brand-teal/10 flex flex-col justify-between min-h-[220px] h-full relative hover:bg-brand-teal/[0.08] transition-all duration-300 shadow-sm"
+                        >
+                          <Quote className="absolute top-4 right-4 text-brand-teal/10 w-8 h-8 pointer-events-none" />
+                          <div>
+                            <div className="flex text-brand-yellow mb-3">
+                              {[...Array(item.rating)].map((_, i) => (
+                                <Star key={i} size={14} fill="currentColor" />
+                              ))}
+                            </div>
+                            <p className="text-brand-teal/80 text-sm italic mb-4 whitespace-pre-line leading-relaxed">
+                              "{showText}"
+                            </p>
+                            {isLong && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedItems(prev => ({
+                                    ...prev,
+                                    [cardKey]: !prev[cardKey]
+                                  }));
+                                }}
+                                className="text-xs font-bold text-brand-teal hover:text-brand-teal/70 pb-3 transition-colors underline decoration-dotted underline-offset-4 cursor-pointer block"
+                              >
+                                {isExpanded ? 'Хураах' : 'Дэлгэрэнгүй'}
+                              </button>
+                            )}
                           </div>
-                          <p className="text-brand-teal/80 text-sm italic mb-4 whitespace-pre-line leading-relaxed">
-                            "{item.text}"
-                          </p>
+                          <div className="font-bold text-sm text-brand-teal mt-auto pt-2 border-t border-brand-teal/10">
+                            — {item.name}
+                          </div>
                         </div>
-                        <div className="font-bold text-sm text-brand-teal mt-auto pt-2 border-t border-brand-teal/10">
-                          — {item.name}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </motion.div>
                 </AnimatePresence>
               </div>
