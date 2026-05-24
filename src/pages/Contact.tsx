@@ -55,8 +55,8 @@ export default function Contact() {
                   <Phone size={24} />
                 </div>
                 <h4 className="font-bold text-brand-teal">Утас</h4>
-                <p className="text-sm text-brand-teal/70">+976 8800-7338</p>
                 <p className="text-sm text-brand-teal/70">+976 8801-0011</p>
+                <p className="text-sm text-brand-teal/70">+976 8800-7338</p>
               </div>
 
               <div className="p-8 bg-brand-teal/5 rounded-2xl border border-brand-teal/10 space-y-4">

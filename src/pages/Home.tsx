@@ -1,7 +1,8 @@
-import { motion } from 'motion/react';
-import { ArrowRight, Star, CheckCircle2, MapPin, Users, Home as HomeIcon, Bed } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ArrowRight, Star, CheckCircle2, MapPin, Users, Home as HomeIcon, Bed, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 
 const highlights = [
   {
@@ -26,20 +27,156 @@ const highlights = [
 
 const testimonials = [
   {
-    name: 'Б. Тэмүүлэн',
-    text: 'Маш гоё орчинтой, үйлчилгээ нь үнэхээр сайн байсан. Гэр бүлээрээ ирэхэд хамгийн тохиромжтой газар.',
+    name: 'Uka Uka',
+    text: 'Суут Ресортдоо очих дуртайдаа. Хариуцаж буй хүмүүс нь их сайхан хүмүүс байдаг шүү. Эерэг дулаан энергитэй газардаа. Дандаа хүмүүст санал болгодог. Болгосоор ч байна.',
     rating: 5
   },
   {
-    name: 'Г. Ану',
-    text: 'Байшингууд нь маш цэвэрхэн, дулаахан. Хоол нь ч бас амттай байлаа. Дахин ирэх болно.',
+    name: 'Nyamaa Narantsetseg',
+    text: 'Суут ресорт очиж амарсан маш найрсаг гэр бүлээрээ очиж амрахад агаар гоётой гоё амралт байсан баярлалаа танай хамт олонд. Family-friendly',
     rating: 5
   },
   {
-    name: 'С. Бат',
-    text: 'Байгалийн сайханд, амар амгалан орчинд амрахыг хүсвэл SUUT RESORT-ыг санал болгож байна.',
-    rating: 4
+    name: 'Baljka Befu',
+    text: 'Үнэхээр таалагдсан шүү. #Suut_Resort-ийн хамт олондоо баярлалаа. Хоол амттай, Орчин тасархай, ажилчидын харилцаа хандлага маш гоё. Баярлалаа 🍀🍀🍀🍀',
+    rating: 5
+  },
+  {
+    name: 'Цогтбаяр Мягмарсүрэн',
+    text: '2023, 2024 оны ХАМГИЙН САЙХАН ДУРСАМЖИЙГ🥰 минь бүтээсэн газрын минь нэг яах аргагүй «SUUT RESORT» байлаа. Шинэ жилээр ч үйлчлүүлсэн, наадмын амралтаараа ч мөн дахин үйлчлүүллээ. Үнэхээр таалагдлаа 🤩. \n☘️Тохилог, тухтай өрөөтэй.\n☘️ Цэвэр агаартай, модтой🌿\n☘️ Спорт заалтай \n🍀ТАСАРХАЙ АМТТАЙ 🍝 ХООЛТОЙ\n☘️Найрсаг хамт олонд маш их БАЯРЛАЛАА.',
+    rating: 5
+  },
+  {
+    name: 'Б. Мухлай',
+    text: 'Суут ресортыг сонгоорой. Үнэхээр гоё үйлчилгээ, найрсаг хамт олон. Тусархаг сэтгэлтэй хүмүүстэй газар байсан шүү. Дахиж заавал очих болноо. Баярлалаа суут ресортын хамт олонд.',
+    rating: 5
+  },
+  {
+    name: 'Батсайхан Мөнгөн Хүлэг',
+    text: 'Үзэсгэлэнтэй байгаль, цэвэр тансаг агаарт... Гэр бүлээрээ заавал зочлоорой... Үнэхээр гайхалтай Амралтын газар.',
+    rating: 5
+  },
+  {
+    name: 'Г. Сувд',
+    text: 'Үнэхээр тухтай, тасархай хоолтой, үзэсгэлэнтэй байгальтай газар байсан. Маш их баярлалаа "Суут Ресорт" 💛💙💜💚❤',
+    rating: 5
+  },
+  {
+    name: 'Kherlenchimeg Tsogtnyam',
+    text: 'Suut resort хамт олонд баярлалаа. Хоол амттай байхаас гадна. Гоё байгальтай газар байна. Амжилт хүсье.',
+    rating: 5
+  },
+  {
+    name: 'Bat Tulga',
+    text: 'Заавал очиж үзээрэй... үйлчилгээ нь үнээсээ давсан газар шүү!',
+    rating: 5
+  },
+  {
+    name: 'Doogii Tumurkhuyag',
+    text: 'Цэвэрхэн, тухтай, гоё хоолтой, найрсаг үйлчилгээтэй амралт байна. Баярлалаа.☺',
+    rating: 5
+  },
+  {
+    name: 'Шагдар Цэрэн-Янжин',
+    text: 'Үйлчилгээ сайтай, амттай сайхан хоолтой гоё газар шүү. Ажилд нь амжилт хүсье!',
+    rating: 5
+  },
+  {
+    name: 'Булгансайхан Ц\'Г',
+    text: 'Одоогоор очиж байсан хамгийн бэст газар. Найрсаг, түргэн шуурхай, цэвэрхэн, хамгийн гол нь ёоо бүр тасарцан хоолтой.',
+    rating: 5
+  },
+  {
+    name: 'Chuluunbaatar Bolor',
+    text: 'Цэвэр агаарт нам гүм тавтай сайхан амархыг хүсвэл энэ амралтыг сонгоорой, хоол унд сайтай, найрсаг хамт олон байна лээ.',
+    rating: 5
+  },
+  {
+    name: 'Badam Lkham',
+    text: 'Тав тухтай найрсаг хамт олон.',
+    rating: 5
   }
+];
+
+const testimonialSlides = [
+  [
+    {
+      name: 'Uka Uka',
+      text: 'Суут Ресортдоо очих дуртайдаа. Хариуцаж буй хүмүүс нь их сайхан хүмүүс байдаг шүү. Эерэг дулаан энергитэй газардаа. Дандаа хүмүүст санал болгодог. Болгосоор ч байна.',
+      rating: 5
+    },
+    {
+      name: 'Nyamaa Narantsetseg',
+      text: 'Суут ресорт очиж амарсан маш найрсаг гэр бүлээрээ очиж амрахад агаар гоётой гоё амралт байсан баярлалаа танай хамт олонд. Family-friendly',
+      rating: 5
+    },
+    {
+      name: 'Baljka Befu',
+      text: 'Үнэхээр таалагдсан шүү. #Suut_Resort-ийн хамт олондоо баярлалаа. Хоол амттай, Орчин тасархай, ажилчидын харилцаа хандлага маш гоё. Баярлалаа 🍀🍀🍀🍀',
+      rating: 5
+    },
+    {
+      name: 'Badam Lkham',
+      text: 'Тав тухтай найрсаг хамт олон.',
+      rating: 5
+    }
+  ],
+  [
+    {
+      name: 'Цогтбаяр Мягмарсүрэн',
+      text: '2023, 2024 оны ХАМГИЙН САЙХАН ДУРСАМЖИЙГ🥰 минь бүтээсэн газрын минь нэг яах аргагүй «SUUT RESORT» байлаа. Шинэ жилээр ч үйлчлүүлсэн, наадмын амралтаараа ч мөн дахин үйлчлүүллээ. Үнэхээр таалагдлаа 🤩. \n☘️Тохилог, тухтай өрөөтэй.\n☘️ Цэвэр агаартай, модтой🌿\n☘️ Спорт заалтай \n🍀ТАСАРХАЙ АМТТАЙ 🍝 ХООЛТОЙ\n☘️Найрсаг хамт олонд маш их БАЯРЛАЛАА.',
+      rating: 5
+    },
+    {
+      name: 'Б. Мухлай',
+      text: 'Суут ресортыг сонгоорой. Үнэхээр гоё үйлчилгээ, найрсаг хамт олон. Тусархаг сэтгэлтэй хүмүүстэй газар байсан шүү. Дахиж заавал очих болноо. Баярлалаа суут ресортын хамт олонд.',
+      rating: 5
+    },
+    {
+      name: 'Батсайхан Мөнгөн Хүлэг',
+      text: 'Үзэсгэлэнтэй байгаль, цэвэр тансаг агаарт... Гэр бүлээрээ заавал зочлоорой... Үнэхээр гайхалтай Амралтын газар.',
+      rating: 5
+    }
+  ],
+  [
+    {
+      name: 'Г. Сувд',
+      text: 'Үнэхээр тухтай, тасархай хоолтой, үзэсгэлэнтэй байгальтай газар байсан. Маш их баярлалаа "Суут Ресорт" 💛💙💜💚❤',
+      rating: 5
+    },
+    {
+      name: 'Kherlenchimeg Tsogtnyam',
+      text: 'Suut resort хамт олонд баярлалаа. Хоол амттай байхаас гадна. Гоё байгальтай газар байна. Амжилт хүсье.',
+      rating: 5
+    },
+    {
+      name: 'Bat Tulga',
+      text: 'Заавал очиж үзээрэй... үйлчилгээ нь үнээсээ давсан газар шүү!',
+      rating: 5
+    },
+    {
+      name: 'Doogii Tumurkhuyag',
+      text: 'Цэвэрхэн, тухтай, гоё хоолтой, найрсаг үйлчилгээтэй амралт байна. Баярлалаа.☺',
+      rating: 5
+    }
+  ],
+  [
+    {
+      name: 'Шагдар Цэрэн-Янжин',
+      text: 'Үйлчилгээ сайтай, амттай сайхан хоолтой гоё газар шүү. Ажилд нь амжилт хүсье!',
+      rating: 5
+    },
+    {
+      name: 'Булгансайхан Ц\'Г',
+      text: 'Одоогоор очиж байсан хамгийн бэст газар. Найрсаг, түргэн шуурхай, цэвэрхэн, хамгийн гол нь ёоо бүр тасарцан хоолтой.',
+      rating: 5
+    },
+    {
+      name: 'Chuluunbaatar Bolor',
+      text: 'Цэвэр агаарт нам гүм тавтай сайхан амархыг хүсвэл энэ амралтыг сонгоорой, хоол унд сайтай, найрсаг хамт олон байна лээ.',
+      rating: 5
+    }
+  ]
 ];
 
 const partners = [
@@ -99,6 +236,17 @@ const partners = [
 ];
 
 export default function Home() {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused) return;
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % testimonialSlides.length);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [isPaused]);
+
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}
@@ -469,23 +617,80 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="space-y-6">
-              {testimonials.map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.2 }}
-                  className="p-8 bg-brand-teal/5 rounded-2xl border border-brand-teal/10 relative"
-                >
-                  <div className="flex text-brand-yellow mb-4">
-                    {[...Array(item.rating)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
-                  </div>
-                  <p className="text-brand-teal/80 italic mb-6">"{item.text}"</p>
-                  <div className="font-bold text-brand-teal">— {item.name}</div>
-                </motion.div>
-              ))}
+            <div 
+              className="relative flex flex-col justify-between min-h-[480px]"
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+            >
+              {/* Slides Container */}
+              <div className="relative overflow-hidden flex-1 flex flex-col justify-center min-h-[420px]">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeSlide}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                  >
+                    {testimonialSlides[activeSlide].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="p-6 bg-brand-teal/5 rounded-2xl border border-brand-teal/10 flex flex-col justify-between h-full relative hover:bg-brand-teal/[0.08] transition-all duration-300 shadow-sm"
+                      >
+                        <Quote className="absolute top-4 right-4 text-brand-teal/10 w-8 h-8 pointer-events-none" />
+                        <div>
+                          <div className="flex text-brand-yellow mb-3">
+                            {[...Array(item.rating)].map((_, i) => (
+                              <Star key={i} size={14} fill="currentColor" />
+                            ))}
+                          </div>
+                          <p className="text-brand-teal/80 text-sm italic mb-4 whitespace-pre-line leading-relaxed">
+                            "{item.text}"
+                          </p>
+                        </div>
+                        <div className="font-bold text-sm text-brand-teal mt-auto pt-2 border-t border-brand-teal/10">
+                          — {item.name}
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Slider Controls */}
+              <div className="flex items-center justify-between mt-6 pt-4 border-t border-brand-teal/10">
+                <div className="flex gap-2">
+                  {testimonialSlides.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveSlide(i)}
+                      className={cn(
+                        "h-2.5 rounded-full transition-all duration-300 pointer-events-auto cursor-pointer",
+                        activeSlide === i ? "w-8 bg-brand-teal" : "w-2.5 bg-brand-teal/20 hover:bg-brand-teal/40"
+                      )}
+                      aria-label={`Go to slide ${i + 1}`}
+                    />
+                  ))}
+                </div>
+                
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setActiveSlide((prev) => (prev - 1 + testimonialSlides.length) % testimonialSlides.length)}
+                    className="p-2 border border-brand-teal/15 rounded-full text-brand-teal hover:bg-brand-teal/5 transition-colors focus:outline-none pointer-events-auto cursor-pointer"
+                    aria-label="Previous slide"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    onClick={() => setActiveSlide((prev) => (prev + 1) % testimonialSlides.length)}
+                    className="p-2 border border-brand-teal/15 rounded-full text-brand-teal hover:bg-brand-teal/5 transition-colors focus:outline-none pointer-events-auto cursor-pointer"
+                    aria-label="Next slide"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -512,7 +717,7 @@ export default function Home() {
               <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
                 <Users size={24} />
               </div>
-              <span>+976 8800-7338, 8801-0011</span>
+              <span>+976 8801-0011, 8800-7338</span>
             </div>
           </div>
         </div>

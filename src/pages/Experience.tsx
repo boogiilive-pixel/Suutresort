@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Leaf, Wind, Sun, Coffee, Camera, Music, Trophy, PartyPopper, Gamepad2, Users } from 'lucide-react';
+import { Leaf, Wind, Sun, Coffee, Camera, Music, Trophy, PartyPopper, Gamepad2, Users, Check, Gift, HelpCircle } from 'lucide-react';
 
 const activities = [
   {
@@ -18,11 +18,11 @@ const activities = [
     title: 'Хүлээн авалт',
     description: 'Байгууллага, хамт олны тэмдэглэлт баяр, хүлээн авалтыг дээд зэргийн түвшинд зохион байгуулна.',
     icon: <PartyPopper className="text-brand-blue" size={32} />,
-    image: 'https://lh3.googleusercontent.com/d/1e5XADe-T1Uwkj6wLEgpHOXIHXQ_0rTSL'
+    image: 'https://lh3.googleusercontent.com/d/1l9TEnSFVdQuWOSTAaQ0x1H0ulKSHb3ld'
   },
   {
-    title: 'Бильярд, Теннис тоглох',
-    description: 'Чөлөөт цагаа хөгжилтэй өнгөрүүлэх бильярд, ширээний теннисний өрөө.',
+    title: 'Биллиард, Теннис тоглох',
+    description: 'Чөлөөт цагаа хөгжилтэй өнгөрүүлэх биллиард, ширээний теннисний өрөө.',
     icon: <Gamepad2 className="text-brand-red" size={32} />,
     image: 'https://lh3.googleusercontent.com/d/1weJpTiCTRZwGq5smajOL4tcOQWj2mqjG'
   }
@@ -160,6 +160,168 @@ export default function Experience() {
                   </div>
                 </motion.div>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Information Section */}
+      <section className="section-padding bg-brand-teal/5 border-t border-brand-teal/10">
+        <div className="max-w-7xl mx-auto space-y-16">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <span className="text-brand-red font-bold tracking-widest uppercase text-sm">Төлбөр, Үйлчилгээ</span>
+            <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-teal">Амралтын үнийн мэдээлэл</h2>
+            <p className="text-brand-teal/60">
+              Бид танд хамгийн таатай нөхцөл, чанартай үйлчилгээ болон дараах үнийн багцыг санал болгож байна.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            {/* Pricing Cards */}
+            <div className="lg:col-span-7 space-y-6">
+              <h3 className="text-2xl font-serif font-bold text-brand-teal mb-6 flex items-center gap-3">
+                <span className="inline-block w-2.5 h-6 bg-brand-yellow rounded-full" />
+                Үндсэн өдрийн тариф
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* Card 1: Adult */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="p-8 bg-white rounded-2xl border border-brand-teal/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all duration-300"
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-brand-yellow/10 rounded-bl-full -z-0 transition-transform duration-300 group-hover:scale-110" />
+                  <div className="relative z-10 space-y-4">
+                    <span className="px-3 py-1 text-xs font-bold text-brand-yellow bg-brand-teal/10 rounded-full">ТОМ ХҮН</span>
+                    <div className="space-y-1">
+                      <div className="text-3xl font-bold text-brand-teal">150,000₮</div>
+                      <div className="text-sm text-brand-teal/50">Хоногийн төлбөр</div>
+                    </div>
+                    <ul className="text-sm text-brand-teal/70 space-y-2 pt-2 border-t border-brand-teal/5">
+                      <li className="flex items-center gap-2">
+                        <Check size={16} className="text-brand-green shrink-0" />
+                        Ор хоногийн төлбөр
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check size={16} className="text-brand-green shrink-0" />
+                        Өдрийн 3 хоол багтсан
+                      </li>
+                    </ul>
+                  </div>
+                </motion.div>
+
+                {/* Card 2: Child */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                  className="p-8 bg-white rounded-2xl border border-brand-teal/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all duration-300"
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-brand-blue/10 rounded-bl-full -z-0 transition-transform duration-300 group-hover:scale-110" />
+                  <div className="relative z-10 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="px-3 py-1 text-xs font-bold text-brand-blue bg-brand-blue/10 rounded-full">ХҮҮХЭД</span>
+                      <span className="text-xs text-brand-teal/60 font-medium">3 - 12 нас</span>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-3xl font-bold text-brand-teal">120,000₮</div>
+                      <div className="text-sm text-brand-teal/50">Хоногийн төлбөр</div>
+                    </div>
+                    <ul className="text-sm text-brand-teal/70 space-y-2 pt-2 border-t border-brand-teal/5">
+                      <li className="flex items-center gap-2">
+                        <Check size={16} className="text-brand-green shrink-0" />
+                        Ор хоногийн төлбөр
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check size={16} className="text-brand-green shrink-0" />
+                        Өдрийн 3 хоол багтсан
+                      </li>
+                    </ul>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Free Child Card & Info */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+              >
+                {/* Free for 0-3 */}
+                <div className="p-6 bg-brand-green/5 rounded-2xl border border-brand-green/15 flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center text-brand-green mt-0.5 shrink-0">
+                    <Gift size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-brand-teal text-base">0-3 насны хүүхэд</h4>
+                    <p className="text-sm text-brand-teal/70 mt-1">Үнэгүй бөгөөд амарч, цагийг өнгөрүүлэх боломжтой.</p>
+                  </div>
+                </div>
+
+                {/* Over 12 & Custom pricing */}
+                <div className="p-6 bg-brand-yellow/5 rounded-2xl border border-brand-yellow/15 flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-brand-yellow/10 flex items-center justify-center text-brand-yellow mt-0.5 shrink-0">
+                    <HelpCircle size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-brand-teal text-base">Насны ангилал</h4>
+                    <p className="text-sm text-brand-teal/70 mt-1">12-оос дээш насны хүүхэд том хүний үнээр тооцогдоно.</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Note / Agreement */}
+              <div className="p-5 bg-white rounded-2xl border border-brand-teal/10 text-sm text-brand-teal/80 flex items-center gap-3 shadow-xs">
+                <span className="w-2.5 h-2.5 rounded-full bg-brand-red animate-pulse shrink-0" />
+                <span>
+                  <strong className="text-brand-teal font-semibold">Санамж:</strong> Хүний тооноос хамааран үнийг тохиролцох боломжтой.
+                </span>
+              </div>
+            </div>
+
+            {/* What is Included (Үнэгүй) */}
+            <div className="lg:col-span-5 bg-white rounded-2xl border border-brand-teal/10 p-8 shadow-sm space-y-6">
+              <div className="border-b border-brand-teal/5 pb-6">
+                <span className="text-brand-blue font-bold tracking-wider uppercase text-xs">Таны төлбөрт багтсан</span>
+                <h3 className="text-2xl font-serif font-bold text-brand-teal mt-1">Дагалдах зүйлс</h3>
+                <p className="text-sm text-brand-teal/60 mt-1">Дээрх үндсэн төлбөрт дараах үйлчилгээнүүд бүгд багтсан (ямар нэгэн нэмэлт төлбөр шаардахгүй):</p>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  { title: "Ор хоногийн төлбөр" },
+                  { title: "Өдрийн 3 хоол", detail: "Өдрийн 1 болон 2-р хоол, оройн хоол, өглөөний цай багтсан" },
+                  { title: "Спорт заал", isSpecial: true },
+                  { title: "Теннис, биллиард", isSpecial: true },
+                  { title: "Ресторан, хурлын заал", isSpecial: true },
+                  { title: "Караоке", isSpecial: true },
+                  { title: "Гадаа талбай, гадна стадион", isSpecial: true }
+                ].map((included, index) => (
+                  <div key={index} className="flex items-start justify-between py-2 border-b border-dashed border-brand-teal/5 last:border-0 last:pb-0">
+                    <div className="flex gap-3 items-start">
+                      <div className="w-5 h-5 rounded-full bg-brand-green/10 flex items-center justify-center text-brand-green mt-0.5 shrink-0">
+                        <Check size={12} fill="currentColor" strokeWidth={3} />
+                      </div>
+                      <div>
+                        <span className="font-semibold text-brand-teal text-sm md:text-base">{included.title}</span>
+                        {included.detail && (
+                          <p className="text-xs text-brand-teal/60 italic mt-0.5">{included.detail}</p>
+                        )}
+                      </div>
+                    </div>
+                    {included.isSpecial && (
+                      <span className="px-2 py-0.5 text-[10px] uppercase font-bold text-brand-green bg-brand-green/10 rounded">
+                        ҮНЭГҮЙ
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

@@ -233,7 +233,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={18} className="shrink-0 text-brand-yellow" />
-                <span>+976 8800-7338, 8801-0011</span>
+                <span>+976 8801-0011, 8800-7338</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={18} className="shrink-0 text-brand-yellow" />
