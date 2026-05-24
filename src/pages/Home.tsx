@@ -6,19 +6,19 @@ import { cn } from '@/lib/utils';
 const highlights = [
   {
     title: 'Байгалийн үзэсгэлэн',
-    description: 'Уулс, ус, ой мод хосолсон Тэрэлж байгалийн цогцолбор газарт байрлах тав тухтай амралтын газар.',
+    description: 'Хусан ойн бэлд байрлах, нам гүм орчин',
     icon: <MapPin className="text-brand-yellow" size={32} />,
     image: 'https://lh3.googleusercontent.com/d/1QyGzIVu5zReIP6TE194liiqltKGztEb9'
   },
   {
-    title: 'Тав тухтай байшин',
-    description: 'Орчин үеийн шийдэл бүхий тав тухтай вилла болон байшингууд таныг хүлээж байна.',
+    title: 'Бүрэн тохижуулсан, цэвэр модон хаус',
+    description: 'Хүнсээ аваад очиход л бүх хэрэгтэй зүйлс нь бэлэн, бүрэн тохижуулсан хаус таныг хүлээж байна.',
     icon: <HomeIcon className="text-brand-red" size={32} />,
     image: 'https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN'
   },
   {
-    title: 'Тав тухтай өрөөнүүд',
-    description: 'Стандарт, Делюкс, Гэр бүлийн өрөөнүүд нь таны амралтыг илүү тухтай болгоно.',
+    title: 'Тохилог өрөөнүүд',
+    description: 'Олон төрлийн сонголт бүхий тохилог өрөөнүүд нь таны амралтыг илүү тухтай болгоно.',
     icon: <Bed className="text-brand-blue" size={32} />,
     image: 'https://lh3.googleusercontent.com/d/1mu0C8z2FhG7HJF6vuVEItWV-O2WDkFYa'
   }
@@ -324,12 +324,18 @@ export default function Home() {
               </h2>
             </div>
             <p className="text-lg text-brand-teal/70 leading-relaxed">
-              SUUT RESORT нь 2018 оноос хойш үйл ажиллагаагаа явуулж байгаа бөгөөд Тэрэлж байгалийн цогцолбор газарт хамгийн тав тухтай, орчин үеийн амралтын газруудын нэг юм. Бид зочдынхоо тав тухыг дээд зэргээр хангаж, байгалийн үзэсгэлэнг мэдрүүлэхийг зорьдог.
+              Суут амралт нь 2017 оноос хойш жилийн дөрвөн улирлын турш үйл ажиллагаагаа явуулсаар ирсэн бөгөөд хусан ойн бэлд байгалийн сайханд байрладаг, тав тухтай, орчин үеийн амралтын газруудын нэг юм. Бид зочдынхоо тав тухыг дээд зэргээр хангаж, байгалийн үзэсгэлэнг мэдрүүлэхийг зорьдог.
             </p>
             <ul className="space-y-4">
-              {['Тав тухтай вилла болон өрөөнүүд', 'Мэргэжлийн тогоочийн бэлтгэсэн амтлаг хоол', 'Гэр бүл, найз нөхдөөрөө амрахад тохиромжтой', 'Байгалийн үзэсгэлэнт газар'].map((item, i) => (
+              {[
+                'Спорт заал, гадна задгай стадион',
+                'Дотроо 00, душтэй өрөөнүүд',
+                'Мэргэжлийн тогоочийн бэлтгэсэн амт, чанартай хоол',
+                'Гэр бүл, найз нөхөд, хамт олноороо амрахад тохиромжтой',
+                'Байгалийн үзэсгэлэнт газар'
+              ].map((item, i) => (
                 <li key={i} className="flex items-center gap-3 text-brand-teal font-medium">
-                  <CheckCircle2 className="text-brand-green" size={20} />
+                  <CheckCircle2 className="text-brand-green shrink-0" size={20} />
                   {item}
                 </li>
               ))}
@@ -344,8 +350,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <span className="text-brand-red font-bold tracking-widest uppercase text-sm">Давуу талууд</span>
-            <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-teal">Яагаад биднийг сонгох вэ?</h2>
-            <p className="text-brand-teal/60">Бид танд хамгийн сайн үйлчилгээ, тав тухтай орчинг санал болгож байна.</p>
+            <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-teal">Яагаад биднийг сонгох ёстой вэ?</h2>
+            <p className="text-brand-teal/60">Бид танд чанартай үйлчилгээг боломжийн үнээр санал болгож байна.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
