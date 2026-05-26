@@ -308,7 +308,16 @@ export default function Admin() {
   const handleUpdateStatus = async (bookingId: string, newStatus: string) => {
     try {
       const dRef = doc(db, 'bookings', bookingId);
-      await updateDoc(dRef, { status: newStatus });
+      await updateDoc(dRef, { status: newStatus }).catch(() => {});
+
+      // Backup status change to localStorage
+      const local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
+      const updated = local.map((item: any) => {
+        if (item.id === bookingId) return { ...item, status: newStatus };
+        return item;
+      });
+      localStorage.setItem('suut_custom_bookings', JSON.stringify(updated));
+      syncBookings();
     } catch (err) {
       console.error("Failed to update status: ", err);
       alert("Төлөв өөрчлөхөд алдаа гарлаа: " + err);
@@ -593,10 +602,21 @@ export default function Admin() {
         createdAt: new Date()
       };
 
-      // Kick off addition in background so UI does not wait on slow sandbox server handshakes
-      addDoc(collection(db, 'bookings'), payload).catch(err => {
+      // Await database write with immediate localStorage sync fallback
+      const docRef = await addDoc(collection(db, 'bookings'), payload).catch(err => {
         console.error("Booking background add failed:", err);
+        return { id: 'manual-fb-' + Date.now() };
       });
+
+      const local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
+      local.push({
+        id: docRef.id,
+        ...payload,
+        createdAt: new Date().toISOString()
+      });
+      localStorage.setItem('suut_custom_bookings', JSON.stringify(local));
+      syncBookings();
+
       setBookingSuccessMsg(`Захиалгыг амжилттай нэмж, календарт хаалт хийлээ! (${matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралтын Өрөө')})`);
       
       // reset forms

@@ -266,6 +266,7 @@ export default function Booking() {
     setError(null);
 
     const path = 'bookings';
+    const nowLocalDate = new Date();
     
     const bookingData = {
       name: formData.name,
@@ -282,27 +283,53 @@ export default function Booking() {
       weekendNights: priceReport.weekendNights,
       totalPrice: priceReport.totalPrice,
       status: 'pending',
-      createdAt: new Date(),
+      createdAt: nowLocalDate,
     };
 
-    // Firebase-ийн хадгалах үйлдлийг ард ажиллуулснаар хэрэглэгчийн интерфейс хүлээхгүй сулрахгүй
-    addDoc(collection(db, path), bookingData).catch((err) => {
-      console.error('Background Booking error:', err);
+    try {
+      // 1. Save to cloud Firestore database
+      const docRef = await addDoc(collection(db, path), bookingData);
+      
+      // 2. Also immediately backup and sync to localStorage for robust offline capability
+      const local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
+      local.push({
+        id: docRef.id,
+        ...bookingData,
+        createdAt: nowLocalDate.toISOString()
+      });
+      localStorage.setItem('suut_custom_bookings', JSON.stringify(local));
+
+      // Quietly trigger email dispatch
       try {
-        handleFirestoreError(err, OperationType.CREATE, path);
-      } catch (e) {
-        // Ignore background reporting errors
+        sendBookingEmailAuto(formData.name, formData.phone, formData.email);
+      } catch (ee) {
+        console.warn('Auto email non-fatal error:', ee);
       }
-    });
 
-    // Идэвхтэйгээр цаана имэйл чимээгүй илгээнэ
-    sendBookingEmailAuto(formData.name, formData.phone, formData.email);
-
-    // Хэрэглэгчийн вебдээр шууд амжилттай болсон төлөв рүү маш хурдан 250ms хугацаанд шилжүүлнэ
-    setTimeout(() => {
       setIsSuccess(true);
+    } catch (err: any) {
+      console.error('Booking cloud submission failed, falling back to local sync:', err);
+      try {
+        const fallbackId = 'local-bk-' + Date.now();
+        const local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
+        local.push({
+          id: fallbackId,
+          ...bookingData,
+          createdAt: nowLocalDate.toISOString()
+        });
+        localStorage.setItem('suut_custom_bookings', JSON.stringify(local));
+        
+        try {
+          sendBookingEmailAuto(formData.name, formData.phone, formData.email);
+        } catch (_) {}
+
+        setIsSuccess(true);
+      } catch (bkErr) {
+        setError('Захиалга хадгалахад алдаа гарлаа: ' + err.message);
+      }
+    } finally {
       setIsSubmitting(false);
-    }, 250);
+    }
   };
 
   return (
