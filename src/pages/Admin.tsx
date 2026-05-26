@@ -296,13 +296,19 @@ export default function Admin() {
 
     try {
       if (editingNews) {
-        await updateDoc(doc(db, 'news', editingNews.id), payload);
+        // Kick off update in background so UI does not wait on slow sandbox server handshakes
+        updateDoc(doc(db, 'news', editingNews.id), payload).catch(err => {
+          console.error("News background update failed:", err);
+        });
         setNewsSuccessMsg("Мэдээг амжилттай засаж шинэчиллээ!");
         setEditingNews(null);
       } else {
-        await addDoc(collection(db, 'news'), {
+        // Kick off addition in background so UI does not wait on slow sandbox server handshakes
+        addDoc(collection(db, 'news'), {
           ...payload,
           createdAt: new Date()
+        }).catch(err => {
+          console.error("News background add failed:", err);
         });
         setNewsSuccessMsg("Мэдээг амжилттай нийтэллээ!");
       }
@@ -368,13 +374,19 @@ export default function Admin() {
 
     try {
       if (editingGallery) {
-        await updateDoc(doc(db, 'gallery', editingGallery.id), payload);
+        // Kick off update in background so UI does not wait on slow sandbox server handshakes
+        updateDoc(doc(db, 'gallery', editingGallery.id), payload).catch(err => {
+          console.error("Gallery background update failed:", err);
+        });
         setGallerySuccessMsg("Зургийн мэдээллийг амжилттай шинэчиллээ!");
         setEditingGallery(null);
       } else {
-        await addDoc(collection(db, 'gallery'), {
+        // Kick off addition in background so UI does not wait on slow sandbox server handshakes
+        addDoc(collection(db, 'gallery'), {
           ...payload,
           createdAt: new Date()
+        }).catch(err => {
+          console.error("Gallery background add failed:", err);
         });
         setGallerySuccessMsg("Шинэ зургийг галерейд амжилттай нэмж нийтэллээ!");
       }
@@ -433,7 +445,10 @@ export default function Admin() {
         createdAt: new Date()
       };
 
-      await addDoc(collection(db, 'bookings'), payload);
+      // Kick off addition in background so UI does not wait on slow sandbox server handshakes
+      addDoc(collection(db, 'bookings'), payload).catch(err => {
+        console.error("Booking background add failed:", err);
+      });
       setBookingSuccessMsg(`Захиалгыг амжилттай нэмж, календарт хаалт хийлээ! (${matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралтын Өрөө')})`);
       
       // reset forms
