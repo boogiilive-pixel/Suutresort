@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import React, { useState, useEffect } from 'react';
 import { X, Maximize2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { cn, getDirectDriveUrl } from '@/lib/utils';
 import { db } from '@/firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
@@ -44,7 +44,12 @@ export default function Gallery() {
           createdAt: data.createdAt
         });
       });
-      setGalleryList(items.length > 0 ? items : DEFAULT_GALLERY);
+      // Merge Firestore custom gallery items with DEFAULT_GALLERY
+      const merged = [
+        ...items,
+        ...DEFAULT_GALLERY.filter(def => !items.some(cust => cust.image === def.image))
+      ];
+      setGalleryList(merged);
     }, (err) => {
       console.warn("Gallery listening failed (falling back safely):", err);
       setGalleryList(DEFAULT_GALLERY);
@@ -121,7 +126,7 @@ export default function Gallery() {
                 onClick={() => setSelectedItem(item)}
               >
                 <img 
-                  src={item.image} 
+                  src={getDirectDriveUrl(item.image)} 
                   alt={item.caption || `Gallery ${item.id}`} 
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   referrerPolicy="no-referrer"
@@ -160,7 +165,7 @@ export default function Gallery() {
               className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 max-h-[70vh] bg-neutral-900 flex items-center justify-center"
             >
               <img 
-                src={selectedItem.image} 
+                src={getDirectDriveUrl(selectedItem.image)} 
                 alt={selectedItem.caption || "Gallery"} 
                 className="max-w-full max-h-[70vh] object-contain rounded-xl"
                 referrerPolicy="no-referrer"

@@ -4,6 +4,7 @@ import { Calendar, User, Share2, Copy, Facebook, ArrowLeft, Eye, MessageCircle }
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '@/firebase';
 import ReactMarkdown from 'react-markdown';
+import { getDirectDriveUrl } from '@/lib/utils';
 
 interface NewsItem {
   id: string;
@@ -94,9 +95,11 @@ export default function News() {
         });
       });
       
-      if (items.length > 0) {
-        setNews(items);
-      }
+      const mergedNews = [
+        ...items,
+        ...DEFAULT_NEWS.filter(def => !items.some(cust => cust.title === def.title))
+      ];
+      setNews(mergedNews);
       setLoading(false);
     }, (err) => {
       console.warn('News listening failed (falling back to default local data):', err);
@@ -266,7 +269,7 @@ export default function News() {
                 {item.image && (
                   <div className="h-48 overflow-hidden relative">
                     <img
-                      src={item.image}
+                      src={getDirectDriveUrl(item.image)}
                       alt={item.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       referrerPolicy="no-referrer"
@@ -384,7 +387,7 @@ export default function News() {
                 {selectedNews.image && (
                   <div className="w-full h-80 relative">
                     <img
-                      src={selectedNews.image}
+                      src={getDirectDriveUrl(selectedNews.image)}
                       alt={selectedNews.title}
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"

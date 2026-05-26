@@ -11,6 +11,7 @@ import {
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { db, auth } from '@/firebase';
 import { calculatePriceReport } from './Booking';
+import { getDirectDriveUrl } from '@/lib/utils';
 
 const DEFAULT_NEWS = [
   {
@@ -284,11 +285,12 @@ export default function Admin() {
     setIsSubmittingNews(true);
     setNewsSuccessMsg(null);
 
+    const cleanImage = getDirectDriveUrl(newsImage);
     const payload = {
       title: newsTitle,
       content: newsContent,
       category: newsCategory,
-      image: newsImage,
+      image: cleanImage,
       author: newsAuthor,
     };
 
@@ -357,8 +359,9 @@ export default function Admin() {
     setIsSubmittingGallery(true);
     setGallerySuccessMsg(null);
 
+    const cleanImage = getDirectDriveUrl(galleryImage);
     const payload = {
-      image: galleryImage,
+      image: cleanImage,
       category: galleryCategory,
       caption: galleryCaption,
     };
@@ -1115,7 +1118,7 @@ export default function Admin() {
                       <div key={item.id} className="py-4 flex justify-between gap-4 items-center">
                         <div className="flex gap-3 items-center min-w-0">
                           <img 
-                            src={item.image} 
+                            src={getDirectDriveUrl(item.image)} 
                             alt={item.caption} 
                             className="w-12 h-12 rounded-xl object-cover border border-slate-100 shrink-0"
                             referrerPolicy="no-referrer"

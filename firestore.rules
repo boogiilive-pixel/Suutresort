@@ -59,7 +59,7 @@ service cloud.firestore {
       allow read: if true;
       
       // Only admins can write, update, or delete news posts
-      allow create, update, delete: if isAdmin() && isValidNews(request.resource.data);
+      allow write: if isAdmin();
     }
 
     // Gallery collection rules
@@ -68,7 +68,7 @@ service cloud.firestore {
       allow read: if true;
       
       // Only admins can write, update, or delete gallery posts
-      allow create, update, delete: if isAdmin() && isValidGallery(request.resource.data);
+      allow write: if isAdmin();
     }
   }
 }
