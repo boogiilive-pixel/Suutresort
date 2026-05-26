@@ -148,10 +148,28 @@ export default function Booking() {
 
   useEffect(() => {
     const q = collection(db, 'bookings');
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+
+    const loadAndSync = (snapshotDocData: any[]) => {
       const datesMap: Record<string, Date[]> = {};
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
+
+      // Load offline bookings from local storage backup
+      let localBookings: any[] = [];
+      try {
+        localBookings = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
+      } catch (e) {
+        console.error("Local bookings read error in Booking.tsx:", e);
+      }
+
+      // Merge both sources
+      const combined = [...snapshotDocData];
+      localBookings.forEach((localItem: any) => {
+        const alreadyExists = combined.some((item: any) => item.id === localItem.id);
+        if (!alreadyExists) {
+          combined.push(localItem);
+        }
+      });
+
+      combined.forEach((data) => {
         if (data.status !== 'cancelled' && data.checkIn && data.checkOut && data.optionId) {
           const optId = data.optionId;
           if (!datesMap[optId]) {
@@ -176,9 +194,22 @@ export default function Booking() {
         }
       });
       setRealBookedDates(datesMap);
+    };
+
+    // Load instantly from localStorage first (zero latency)
+    loadAndSync([]);
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docList: any[] = [];
+      snapshot.forEach((docSnap) => {
+        docList.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      loadAndSync(docList);
     }, (err) => {
       console.error('Snapshot error for bookings:', err);
+      loadAndSync([]);
     });
+
     return () => unsubscribe();
   }, []);
 
@@ -186,20 +217,27 @@ export default function Booking() {
 
   const handleNext = () => setStep(s => s + 1);
   const handleBack = () => {
-    if (step === 2 && selectedType === 'house') {
-      setSelectedType(null);
-      setSelectedOption(null);
-      setStep(1);
-    } else {
-      setStep(s => s - 1);
-    }
+    setStep(s => s - 1);
   };
 
   const isDateDisabled = (date: Date) => {
-    if (isBefore(date, startOfToday())) return true;
+    // Current date/time in local timezone
+    const now = new Date();
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Clear time for comparison
+    const compareDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    if (compareDate < todayMidnight) {
+      return true;
+    }
+    
     if (!selectedOption) return false;
     const optionBookings = realBookedDates[selectedOption.id] || [];
-    return optionBookings.some(bookedDate => isSameDay(bookedDate, date));
+    return optionBookings.some(bookedDate => {
+      const bDate = new Date(bookedDate.getFullYear(), bookedDate.getMonth(), bookedDate.getDate());
+      return bDate.getTime() === compareDate.getTime();
+    });
   };
 
   const sendBookingEmailAuto = async (name: string, phone: string, email: string) => {
@@ -469,18 +507,7 @@ export default function Booking() {
                           <button 
                             onClick={() => { 
                               setSelectedType('house'); 
-                              const defaultHouse = options.find(o => o.type === 'house') || {
-                                id: 'villa-1',
-                                type: 'house',
-                                title: 'Цэвэр Модон Хаус',
-                                price: '600,000₮ - 800,000₮',
-                                image: 'https://lh3.googleusercontent.com/d/1hUTtrjo0_w0pbY9Pd5C4HGOYRF6VkyRa'
-                              };
-                              setSelectedOption({
-                                ...defaultHouse,
-                                title: 'Цэвэр Модон Хаус'
-                              }); 
-                              setStep(2); 
+                              setSelectedOption(null); 
                             }}
                             className="group p-8 bg-brand-teal/5 border-2 border-transparent hover:border-brand-teal rounded-3xl transition-all cursor-pointer text-center space-y-6"
                           >

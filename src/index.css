@@ -63,7 +63,7 @@
 }
 
 /* Available Days (Not disabled, not selected) - Soft Emerald Green Theme */
-.rdp-day:not(.rdp-day_disabled):not(.rdp-day_selected) {
+.rdp-day:not(.rdp-day_disabled):not(.rdp-day_selected):not([disabled]):not([aria-disabled="true"]) {
   background-color: #ecfdf5 !important; /* bg-emerald-50 */
   color: #065f46 !important; /* text-emerald-800 */
   border: 1px solid #10b981 !important; /* border-emerald-500 */
@@ -71,20 +71,21 @@
   cursor: pointer !important;
 }
 
-.rdp-day:not(.rdp-day_disabled):not(.rdp-day_selected):hover {
+.rdp-day:not(.rdp-day_disabled):not(.rdp-day_selected):not([disabled]):not([aria-disabled="true"]):hover {
   background-color: #10b981 !important; /* bg-emerald-500 */
   color: #ffffff !important;
   transform: translateY(-1px) scale(1.05);
 }
 
 /* Booked / Disabled Days (Reserved dates or dates in the past) - Soft Red/Rose Theme with Strikethrough */
-.rdp-day_disabled, .rdp-day[disabled] {
+.rdp-day_disabled, .rdp-day[disabled], .rdp-day[aria-disabled="true"], .rdp-day--disabled {
   background-color: #fef2f2 !important; /* bg-rose-50 */
   color: #ef4444 !important; /* text-red-500 */
   border: 1px solid #fca5a5 !important; /* border-red-200 */
-  opacity: 0.85 !important;
+  opacity: 0.75 !important;
   text-decoration: line-through decoration-red-400 decoration-2 !important;
   cursor: not-allowed !important;
+  pointer-events: none !important; /* Absolutely unclickable */
 }
 
 /* Selected Days (The selected date range) - Core Pine Green Theme */
