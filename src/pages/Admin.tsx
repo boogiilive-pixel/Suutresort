@@ -929,15 +929,24 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-bold text-brand-teal">Зургийн холбоос (Image URL)</label>
                     <input
                       type="text"
                       value={newsImage}
                       onChange={(e) => setNewsImage(e.target.value)}
+                      placeholder="https://drive.google.com/..."
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-600 font-mono text-xs"
                     />
-                    <span className="text-[10px] text-slate-400 block pt-0.5">Суурилагдсан өөрийн гэсэн гоё зургийн холбоос ашиглаж болно.</span>
+                    <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-3 text-[11px] text-amber-800 space-y-1 leading-relaxed">
+                      <p className="font-bold flex items-center gap-1">
+                        <AlertTriangle size={13} className="text-amber-600 shrink-0" /> Google Drive ашиглах заавар:
+                      </p>
+                      <ul className="list-disc pl-4 space-y-0.5">
+                        <li>Зургийнхаа хуваалцах тохиргоог заавал <span className="font-bold text-amber-900">"Холбоос бүхий хэн ч үзэх боломжтой" (Anyone with the link can view)</span> болгоно.</li>
+                        <li>Тохиргоог "Хязгаарлагдмал" (Restricted) хэвээр үлдээвэл зураг вэб хуудас дээр харагдахгүй бөгөөд эвдэрч харагдана.</li>
+                      </ul>
+                    </div>
                   </div>
 
                   <div className="space-y-1">
@@ -1058,17 +1067,27 @@ export default function Admin() {
                       </select>
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <label className="text-xs font-bold text-brand-teal">Зургийн холбоос (Image URL) *</label>
                       <input
                         type="text"
                         required
                         value={galleryImage}
                         onChange={(e) => setGalleryImage(e.target.value)}
-                        placeholder="https://..."
+                        placeholder="https://drive.google.com/..."
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none font-mono"
                       />
                     </div>
+                  </div>
+
+                  <div className="bg-amber-50 border border-amber-200/60 rounded-2xl p-4 text-[11px] text-amber-800 space-y-1 leading-relaxed">
+                    <p className="font-bold flex items-center gap-1">
+                      <AlertTriangle size={13} className="text-amber-600 shrink-0" /> Чухал санамж (Google Drive холбоос ашиглаж байгаа бол):
+                    </p>
+                    <ul className="list-disc pl-4 space-y-0.5 font-sans">
+                      <li>Зургийнхаа хуваалцах тохиргоог заавал <span className="font-bold text-amber-900">"Холбоос бүхий хэн ч үзэх боломжтой" (Anyone with the link can view)</span> болгох ёстой.</li>
+                      <li>Хэрэв Google Drive-д "Хязгаарлагдмал" (Restricted) хэвээр байвал вэб дээр зураг харагдахгүй, эвдэрч харагдана.</li>
+                    </ul>
                   </div>
 
                   <div className="space-y-1">
@@ -1120,8 +1139,11 @@ export default function Admin() {
                           <img 
                             src={getDirectDriveUrl(item.image)} 
                             alt={item.caption} 
-                            className="w-12 h-12 rounded-xl object-cover border border-slate-100 shrink-0"
+                            className="w-12 h-12 rounded-xl object-cover border border-slate-100 shrink-0 bg-slate-100"
                             referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              e.currentTarget.src = "https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG";
+                            }}
                           />
                           <div className="space-y-0.5 text-xs min-w-0">
                             <span className="bg-brand-teal/10 text-brand-teal font-extrabold px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider block w-max">
