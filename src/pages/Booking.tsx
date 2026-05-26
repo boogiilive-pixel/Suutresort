@@ -339,40 +339,37 @@ export default function Booking() {
                 <img src="https://lh3.googleusercontent.com/d/18uAV6mFKrTaRXMtml9Qu0ENa3DfsgMEA" alt="SUUT RESORT Logo" className="h-12 w-auto mx-auto opacity-50" />
                 <div className="space-y-4">
                   <h2 className="text-4xl font-serif font-bold text-brand-teal">Захиалга амжилттай!</h2>
-                  <p className="text-brand-teal/60 max-w-md mx-auto">
-                    Таны захиалгыг бид хүлээн авлаа. Бид тантай утсаар холбогдож захиалгыг баталгаажуулах болно.
-                  </p>
                 </div>
-                  <div className="p-6 bg-brand-teal/5 rounded-2xl text-left space-y-3 max-w-md mx-auto border border-brand-teal/10">
-                    <div className="flex justify-between text-sm"><span className="text-brand-teal/50">Захиалагч:</span> <span className="font-bold text-brand-teal">{formData.name}</span></div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-brand-teal/50">Сонголт:</span> 
-                      <span className="font-bold text-brand-teal">
-                        {selectedOption?.title || (selectedType === 'house' ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт')}
-                      </span>
+
+                <div className="p-6 bg-brand-yellow/10 rounded-2xl text-center space-y-4 max-w-md mx-auto border border-brand-yellow/20 shadow-sm">
+                  <h3 className="text-lg font-bold text-brand-teal">Захиалгыг амжилттай илгээлээ!</h3>
+                  <div className="space-y-2 text-sm text-brand-teal/80 font-medium leading-relaxed">
+                    <p>Бид тантай удахгүй холбоо барих болно.</p>
+                    <p>Хэрэв та яаралтай холбогдох бол <a href="tel:88010011" className="font-bold text-brand-teal underline">8801-0011</a>, <a href="tel:88007338" className="font-bold text-brand-teal underline">88007338</a> дугаараар холбогдоорой.</p>
+                    <div className="text-brand-red font-bold text-sm mt-3 bg-brand-red/5 p-3 rounded-xl border border-brand-red/10 leading-relaxed shadow-inner">
+                      ⚠️ Урьдчилгаа төлбөр төлж байж захиалга баталгаажихыг анхаарна уу!
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-brand-teal/50">Хугацаа:</span> 
-                      <span className="font-bold text-brand-teal border-b border-brand-teal/10 pb-1">
-                        {selectedRange?.from && format(selectedRange.from, 'MM/dd')} - {selectedRange?.to && format(selectedRange.to, 'MM/dd')}
-                        {` (${priceReport.totalNights} хоног)`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm"><span className="text-brand-teal/50">Энгийн өдөр (Ням-Пүрэв):</span> <span className="font-bold text-brand-teal">{priceReport.weekdayNights} хоног</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-brand-teal/50">Амралтын өдөр (Баасан-Бямба):</span> <span className="font-bold text-brand-teal">{priceReport.weekendNights} хоног</span></div>
-                    <div className="pt-2 border-t border-brand-teal/10 flex justify-between text-sm"><span className="text-brand-teal font-bold">Нийт бодогдсон дүн:</span> <span className="font-bold text-brand-red text-base">{priceReport.totalPrice.toLocaleString()}₮</span></div>
                   </div>
+                </div>
                 
-                <div className="p-6 bg-brand-yellow/10 rounded-2xl text-center space-y-3 max-w-md mx-auto border border-brand-yellow/20">
-                  <p className="text-sm font-semibold text-brand-teal">
-                    Захиалгын мэдээллийг <b>boogiilive@gmail.com</b> рүү имэйлээр баталгаажуулав.
-                  </p>
-                  <button 
-                    onClick={() => sendBookingEmail(formData.name, formData.phone, formData.email)} 
-                    className="px-6 py-2.5 bg-brand-teal text-white hover:bg-brand-teal/90 rounded-full font-bold text-sm transition-all hover:scale-105 inline-flex items-center gap-2 cursor-pointer shadow-md"
-                  >
-                    <Mail size={16} /> Имэйл дахин илгээх (Хэрвээ нээгдээгүй бол)
-                  </button>
+                <div className="p-6 bg-brand-teal/5 rounded-2xl text-left space-y-3 max-w-md mx-auto border border-brand-teal/10">
+                  <div className="flex justify-between text-sm"><span className="text-brand-teal/50">Захиалагч:</span> <span className="font-bold text-brand-teal">{formData.name}</span></div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-brand-teal/50">Сонголт:</span> 
+                    <span className="font-bold text-brand-teal">
+                      {selectedOption?.title || (selectedType === 'house' ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-brand-teal/50">Хугацаа:</span> 
+                    <span className="font-bold text-brand-teal border-b border-brand-teal/10 pb-1">
+                      {selectedRange?.from && format(selectedRange.from, 'MM/dd')} - {selectedRange?.to && format(selectedRange.to, 'MM/dd')}
+                      {` (${priceReport.totalNights} хоног)`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm"><span className="text-brand-teal/50">Энгийн өдөр (Ням-Пүрэв):</span> <span className="font-bold text-brand-teal">{priceReport.weekdayNights} хоног</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-brand-teal/50">Амралтын өдөр (Баасан-Бямба):</span> <span className="font-bold text-brand-teal">{priceReport.weekendNights} хоног</span></div>
+                  <div className="pt-2 border-t border-brand-teal/10 flex justify-between text-sm"><span className="text-brand-teal font-bold">Нийт бодогдсон дүн:</span> <span className="font-bold text-brand-red text-base">{priceReport.totalPrice.toLocaleString()}₮</span></div>
                 </div>
 
                 <div className="pt-4">
