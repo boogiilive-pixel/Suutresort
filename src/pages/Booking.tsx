@@ -163,7 +163,14 @@ export default function Booking() {
       // Merge both sources
       const combined = [...snapshotDocData];
       localBookings.forEach((localItem: any) => {
-        const alreadyExists = combined.some((item: any) => item.id === localItem.id);
+        const alreadyExists = combined.some((item: any) => 
+          item.id === localItem.id ||
+          (item.name === localItem.name && 
+           item.phone === localItem.phone && 
+           item.checkIn === localItem.checkIn && 
+           item.checkOut === localItem.checkOut && 
+           item.optionId === localItem.optionId)
+        );
         if (!alreadyExists) {
           combined.push(localItem);
         }

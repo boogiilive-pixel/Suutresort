@@ -92,18 +92,51 @@ export default function Admin() {
   const firestoreBookingsRef = useRef<any[]>([]);
   const firestoreNewsRef = useRef<any[]>([]);
   const firestoreGalleryRef = useRef<any[]>([]);
+  const isSubmittingBookingsRef = useRef(false);
 
   // Robust sync functions merging local cache and firestore streams
   const syncBookings = () => {
-    const local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
-    const combined = firestoreBookingsRef.current.map((fItem: any) => {
-      const localMatch = local.find((lItem: any) => lItem.id === fItem.id);
-      return localMatch ? { ...fItem, ...localMatch } : fItem;
-    });
+    let local: any[] = [];
+    try {
+      local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
+    } catch (e) {
+      console.error("Local storage error in syncBookings:", e);
+    }
+    
+    // Start with Firestore bookings
+    const combined = [...firestoreBookingsRef.current];
+
+    // Merge in any other local bookings, deduplicating both by ID and by exact details
     local.forEach((lItem: any) => {
-      const exists = combined.some(item => item.id === lItem.id);
-      if (!exists) combined.push(lItem);
+      const exists = combined.some((item: any) => 
+        item.id === lItem.id ||
+        (item.name === lItem.name && 
+         item.phone === lItem.phone && 
+         item.checkIn === lItem.checkIn && 
+         item.checkOut === lItem.checkOut && 
+         item.optionId === lItem.optionId)
+      );
+      if (!exists) {
+        combined.push(lItem);
+      }
     });
+
+    // Safely sort the combined bookings list in-memory descending by createdAt
+    combined.sort((a: any, b: any) => {
+      const getMs = (val: any) => {
+        if (!val) return 0;
+        if (typeof val.toDate === 'function') {
+          return val.toDate().getTime();
+        }
+        if (val.seconds) {
+          return val.seconds * 1000;
+        }
+        const parsed = Date.parse(val);
+        return isNaN(parsed) ? 0 : parsed;
+      };
+      return getMs(b.createdAt) - getMs(a.createdAt);
+    });
+
     setBookings(combined);
   };
 
@@ -209,7 +242,8 @@ export default function Admin() {
     syncGallery();
 
     // Load bookings in real-time
-    const qBookings = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'));
+    // Querying directly without orderBy prevents Firestore from omitting documents that miss the 'createdAt' field.
+    const qBookings = collection(db, 'bookings');
     const unsubBookings = onSnapshot(qBookings, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach((snap) => {
@@ -563,11 +597,13 @@ export default function Admin() {
   // Submit manual booking from admin panel
   const handleAddManualBooking = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingBookingsRef.current) return;
     if (!clientName.trim() || !clientPhone.trim() || !checkInDate || !checkOutDate) {
       alert("Нэр, утас, очих болон гарах огноог заавал бөглөнө үү!");
       return;
     }
 
+    isSubmittingBookingsRef.current = true;
     setIsSubmittingBooking(true);
     setBookingSuccessMsg(null);
 
@@ -635,6 +671,7 @@ export default function Admin() {
       console.error("Manual booking addition failed: ", err);
       alert("Захиалга бүртгэхэд алдаа гарлаа: " + err.message);
     } finally {
+      isSubmittingBookingsRef.current = false;
       setIsSubmittingBooking(false);
     }
   };
