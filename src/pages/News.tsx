@@ -71,8 +71,8 @@ const DEFAULT_NEWS: NewsItem[] = [
 ];
 
 export default function News() {
-  const [news, setNews] = useState<NewsItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [news, setNews] = useState<NewsItem[]>(DEFAULT_NEWS);
+  const [loading, setLoading] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [activeTab, setActiveTab] = useState<string>('Бүгд');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -94,17 +94,30 @@ export default function News() {
         });
       });
       
-      // if firestore query returns nothing, use default items
-      setNews(items.length > 0 ? items : DEFAULT_NEWS);
+      if (items.length > 0) {
+        setNews(items);
+      }
       setLoading(false);
     }, (err) => {
       console.warn('News listening failed (falling back to default local data):', err);
-      setNews(DEFAULT_NEWS);
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
+
+  // Sync URL search params to auto-open specific shared news posts on load
+  useEffect(() => {
+    const hash = window.location.hash;
+    const urlParams = new URLSearchParams(hash.includes('?') ? hash.split('?')[1] : '');
+    const newsId = urlParams.get('id');
+    if (newsId && news.length > 0) {
+      const found = news.find(n => n.id === newsId);
+      if (found) {
+        setSelectedNews(found);
+      }
+    }
+  }, [news]);
 
   const handleCopyLink = (item: NewsItem, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -131,19 +144,30 @@ export default function News() {
   const categories = ['Бүгд', 'Мэдээ', 'Хямдрал', 'Урамшуулал', 'Эко Аялал'];
 
   return (
-    <div className="pt-24 min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Banner */}
-      <div className="relative py-16 bg-brand-teal text-white text-center overflow-hidden">
-        <div className="absolute inset-0 bg-black/10 z-0 pointer-events-none" />
-        <div className="relative z-10 max-w-4xl mx-auto px-6 space-y-3">
+      <div className="relative h-[65vh] flex items-center justify-center text-white text-center overflow-hidden pt-20">
+        {/* Background Image requested by user */}
+        <div className="absolute inset-0 z-0 select-none pointer-events-none">
+          <img
+            src="https://lh3.googleusercontent.com/d/1EZJq9Y8EuxIs51EVyLnFUYGhIdQzAIjP"
+            alt="SUUT Resort News Cover"
+            className="w-full h-full object-cover object-center scale-105 filter brightness-75 contrast-[1.02]"
+            referrerPolicy="no-referrer"
+          />
+          {/* Black overlay and elegant teal gradient vignette */}
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-teal/70 via-black/20 to-brand-teal/80" />
+          <div className="absolute inset-0 bg-black/30" />
+        </div>
+        <div className="relative z-10 max-w-4xl mx-auto px-6 space-y-4">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl font-serif font-bold text-brand-yellow"
+            className="text-5xl md:text-6xl font-serif font-bold text-brand-yellow drop-shadow-md"
           >
-            Мэдээ, Мэдээлэл
+            Мэдээ, <span className="italic font-normal">Мэдээлэл</span>
           </motion.h1>
-          <p className="text-white/80 max-w-xl mx-auto text-sm md:text-base">
+          <p className="text-lg md:text-xl text-white/95 max-w-2xl mx-auto font-medium drop-shadow-sm leading-relaxed">
             SUUT RESORT-ын цаг үеийн мэдээ мэдээлэл, шинээр хийгдсэн бүтээн байгуулалт, урамшууллуудтай танилцаарай.
           </p>
         </div>
