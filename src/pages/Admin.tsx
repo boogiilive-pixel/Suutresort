@@ -2,15 +2,67 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Lock, LogIn, Calendar, Plus, FileText, Check, X, Search, 
-  Trash2, User, Phone, Mail, DollarSign, RefreshCw, LogOut, AlertTriangle 
+  Trash2, User, Phone, Mail, DollarSign, RefreshCw, LogOut, AlertTriangle, Edit 
 } from 'lucide-react';
 import { 
   collection, query, orderBy, onSnapshot, doc, 
-  addDoc, updateDoc, deleteDoc, serverTimestamp 
+  addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc 
 } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { db, auth } from '@/firebase';
 import { calculatePriceReport } from './Booking';
+
+const DEFAULT_NEWS = [
+  {
+    id: 'default-1',
+    title: 'Зуны Нээлтийн Урамшуулал: Ажлын Өдрүүдэд 20% Хямдарлаа!',
+    content: `Урин дулаан цаг ирж, амралт зугаалгын улирал эхэлж байгаатай холбогдуулан **SUUT RESORT** нь зуны улирлын нээлтийн тусгай урамшууллыг зарлаж байна. 
+
+Та Даваагаас Пүрэв гарагт захиалга өгснөөр дараах хөнгөлөлтүүдийг авах боломжтой:
+- Цэвэр модон хаусууд болон бүх төрлийн өрөөний захиалга **20% хямдарна**.
+- Үүнд өдрийн 3 хоол болон амралтын гаднах стадион ашиглах эрх багтсан болно.
+- Гэр бүл бөгөөд найз нөхдөөрөө нам гүм, байгалийн үзэсгэлэнт газарт ая тухтай амрах хамгийн сайн боломж!
+
+### Захиалга баталгаажуулах заавар:
+1. Захиалга цэс рүү орж тохирох өдрөө сонгоно.
+2. Урьдчилгаа төлбөрөө шилжүүлснээр таны захиалга шууд баталгаажна.
+3. Дэлгэрэнгүй мэдээллийг 8801-0011 утсаар аваарай.`,
+    category: 'Хямдрал',
+    image: 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
+    author: 'Админ'
+  },
+  {
+    id: 'default-2',
+    title: 'Шинэ Спортын Талбай Болон Тоглоомын Хэсэг Нээгдлээ',
+    content: `Бид амрагч нарынхаа чөлөөт цагийг илүү сонирхолтой, идэвхтэй өнгөрүүлэхэд зориулж олон улсын стандартад нийцсэн шинэ спорт заал, гадна талбайг ашиглалтад орууллаа.
+
+### Спортын цогцолборт багтсан:
+- Сагсан бөмбөгийн задгай талбай
+- Волейболын зүлгэн талбай
+- Хүүхдийн аюулгүй элсний талбай, савлуур
+- Ширээний теннис, бильярд
+
+Амрагчид маань ямар нэг нэмэлт төлбөргүйгээр эдгээр хэсгүүдэд тоглож, эрүүл агаарт нэг өдрийг гэр бүлээрээ ид шидийн мэт өнгөрүүлэх боломжтой юм. Манай хамт олон таны тав тухыг хангахаар цаг үргэлж хөдөлмөрлөсөөр байна!`,
+    category: 'Мэдээ',
+    image: 'https://lh3.googleusercontent.com/d/1mu0C8z2FhG7HJF6vuVEItWV-O2WDkFYa',
+    author: 'Амралтын Захиргаа'
+  },
+  {
+    id: 'default-3',
+    title: 'Эко Явган Аяллын Шинэ Чиглэлүүд Гаргалаа',
+    content: `Байгальтайгаа илүү гүнзгий холбогдож, хусан ойн замаар алхахыг хүссэн амрагчдадаа зориулан тусгай явган аяллын **шинэ 3 чиглэлийг** тэмдэгжүүлсэн замаар тохижууллаа.
+
+### Сонгох боломжтой маршрутууд:
+1. **Хусан төгөл зашал амралт**: Нийт 1.2км хялбар замын алхалт, уушги цэвэрлэх амьсгалын дасгалын цэгүүдтэй.
+2. **Оргил өөд уруудах залуусын чиглэл**: Нийт 2.5км дунд зэргийн хүндрэлтэй, Баянчандмань сумын байгалийг бүхэлд нь харах хяналтын өндөрлөгтэй.
+3. **Болор булаг эко отог**: Байгалийн булаг, рашааны эх ундарга руу хийх 3км-ийн урттай аялал.
+
+Аялал бүрд манай мэргэжлийн хөтөч чиглүүлэг өгөх бөгөөд аяллыг илүү сонирхолтой танин мэдэхүйн түүхүүдээр баяжуулах болно. Ирээд заавал туршиж үзээрэй!`,
+    category: 'Эко Аялал',
+    image: 'https://lh3.googleusercontent.com/d/1QyGzIVu5zReIP6TE194liiqltKGztEb9',
+    author: 'Хөтөч Батболд'
+  }
+];
 
 // Direct option configurations matching Booking.tsx
 const ADMIN_OPTIONS = [
@@ -47,6 +99,7 @@ export default function Admin() {
   const [newsAuthor, setNewsAuthor] = useState('Админ');
   const [isSubmittingNews, setIsSubmittingNews] = useState(false);
   const [newsSuccessMsg, setNewsSuccessMsg] = useState<string | null>(null);
+  const [editingNews, setEditingNews] = useState<any | null>(null);
 
   // Form states - Manual Booking
   const [clientName, setClientName] = useState('');
@@ -88,12 +141,32 @@ export default function Admin() {
 
     // Load news in real-time
     const qNews = query(collection(db, 'news'), orderBy('createdAt', 'desc'));
-    const unsubNews = onSnapshot(qNews, (snapshot) => {
+    const unsubNews = onSnapshot(qNews, async (snapshot) => {
       const list: any[] = [];
       snapshot.forEach((snap) => {
         list.push({ id: snap.id, ...snap.data() });
       });
-      setNews(list);
+
+      // Auto-populate default 3 news posts in Firestore if completely empty
+      if (snapshot.empty && !localStorage.getItem('suut_news_populated')) {
+        localStorage.setItem('suut_news_populated', 'true');
+        for (const item of DEFAULT_NEWS) {
+          try {
+            await setDoc(doc(db, 'news', item.id), {
+              title: item.title,
+              content: item.content,
+              category: item.category,
+              image: item.image,
+              author: item.author,
+              createdAt: serverTimestamp()
+            });
+          } catch (e) {
+            console.error("Failed to seed default news: ", e);
+          }
+        }
+      } else {
+        setNews(list);
+      }
     }, (err) => {
       console.error("Error loading news as admin: ", err);
     });
@@ -157,6 +230,27 @@ export default function Admin() {
     }
   };
 
+  // Edit news article handler
+  const handleEditNewsClick = (item: any) => {
+    setEditingNews(item);
+    setNewsTitle(item.title || '');
+    setNewsContent(item.content || '');
+    setNewsCategory(item.category || 'Мэдээ');
+    setNewsImage(item.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4');
+    setNewsAuthor(item.author || 'Админ');
+    // Scroll smoothly to form input area
+    window.scrollTo({ top: 120, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingNews(null);
+    setNewsTitle('');
+    setNewsContent('');
+    setNewsCategory('Мэдээ');
+    setNewsImage('https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4');
+    setNewsAuthor('Админ');
+  };
+
   // Publish dynamic news from admin
   const handlePublishNews = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,20 +268,30 @@ export default function Admin() {
       category: newsCategory,
       image: newsImage,
       author: newsAuthor,
-      createdAt: serverTimestamp()
     };
 
     try {
-      await addDoc(collection(db, 'news'), payload);
-      setNewsSuccessMsg("Мэдээг амжилттай нийтэллээ!");
+      if (editingNews) {
+        await updateDoc(doc(db, 'news', editingNews.id), payload);
+        setNewsSuccessMsg("Мэдээг амжилттай засаж шинэчиллээ!");
+        setEditingNews(null);
+      } else {
+        await addDoc(collection(db, 'news'), {
+          ...payload,
+          createdAt: serverTimestamp()
+        });
+        setNewsSuccessMsg("Мэдээг амжилттай нийтэллээ!");
+      }
       
       // reset form
       setNewsTitle('');
       setNewsContent('');
       setNewsCategory('Мэдээ');
+      setNewsImage('https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4');
+      setNewsAuthor('Админ');
     } catch (err: any) {
-      console.error("News publishing error:", err);
-      alert("Мэдээ нийтлэхэд алдаа гарлаа: " + err.message);
+      console.error("News saving error:", err);
+      alert("Мэдээ хадгалахад алдаа гарлаа: " + err.message);
     } finally {
       setIsSubmittingNews(false);
     }
@@ -325,9 +429,9 @@ export default function Admin() {
   }
 
   return (
-    <div className="pt-24 min-h-screen bg-slate-50 pb-16">
+    <div className="min-h-screen bg-slate-50 pb-16">
       {/* Admin header */}
-      <div className="bg-brand-teal text-white py-8 px-6 md:px-12 border-b border-white/5">
+      <div className="bg-brand-teal text-white pt-28 pb-10 px-6 md:px-12 border-b border-white/5">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="space-y-1">
             <span className="bg-brand-yellow/20 text-brand-yellow text-xs font-bold px-3 py-1 rounded-full border border-brand-yellow/30 uppercase tracking-wider">
@@ -662,11 +766,15 @@ export default function Admin() {
               exit={{ opacity: 0, y: -15 }}
               className="grid grid-cols-1 lg:grid-cols-3 gap-8"
             >
-              {/* Add form */}
+              {/* Add / Edit form */}
               <div className="lg:col-span-2 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm space-y-6">
                 <div>
-                  <h2 className="text-2xl font-serif font-bold text-brand-teal">Шинэ Мэдээ, Урамшуулал Нийтлэх</h2>
-                  <p className="text-slate-500 text-xs">Энд нийтэлсэн мэдээллүүд вэб хуудасны Мэдээлэл цэсэнд шууд харагдана.</p>
+                  <h2 className="text-2xl font-serif font-bold text-brand-teal">
+                    {editingNews ? 'Мэдээлэл Засах, Шинэчлэх' : 'Шинэ Мэдээ, Урамшуулал Нийтлэх'}
+                  </h2>
+                  <p className="text-slate-500 text-xs">
+                    {editingNews ? 'Сонгосон мэдээг засаж шинэчилж байна. Өөрчлөлтийг хэрэгжүүлэхийн тулд "Шинэчлэх" товчийг дарна уу.' : 'Энд нийтэлсэн мэдээллүүд вэб хуудасны Мэдээлэл цэсэнд шууд харагдана.'}
+                  </p>
                 </div>
 
                 {newsSuccessMsg && (
@@ -737,13 +845,24 @@ export default function Admin() {
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={isSubmittingNews}
-                    className="w-full bg-brand-teal hover:bg-brand-teal/90 text-white p-3.5 rounded-full font-bold text-sm transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-50"
-                  >
-                    {isSubmittingNews ? 'Нийтэлж байна...' : 'Мэдээ нийтлэх'}
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingNews}
+                      className="w-full bg-brand-teal hover:bg-brand-teal/90 text-white p-3.5 rounded-full font-bold text-sm transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                    >
+                      {isSubmittingNews ? 'Хадгалж байна...' : (editingNews ? 'Өөрчлөлтийг Шинэчлэх' : 'Мэдээ нийтлэх')}
+                    </button>
+                    {editingNews && (
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-bold text-sm transition-all cursor-pointer"
+                      >
+                        Цуцлах
+                      </button>
+                    )}
+                  </div>
                 </form>
               </div>
 
@@ -765,13 +884,22 @@ export default function Admin() {
                           <h4 className="font-bold text-slate-700 leading-normal line-clamp-2">{item.title}</h4>
                           <span className="text-slate-400 block">Жиргэсэн: {item.author || 'Админ'}</span>
                         </div>
-                        <button
-                          onClick={() => handleDeleteNews(item.id)}
-                          className="p-1 px-2.5 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 rounded-lg transition-all"
-                          title="Нийтлэл устгах"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        <div className="flex gap-1 shrink-0">
+                          <button
+                            onClick={() => handleEditNewsClick(item)}
+                            className="p-1 px-2.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 rounded-lg transition-all cursor-pointer"
+                            title="Нийтлэл засах"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteNews(item.id)}
+                            className="p-1 px-2.5 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 rounded-lg transition-all cursor-pointer"
+                            title="Нийтлэл устгах"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
                     ))
                   )}
