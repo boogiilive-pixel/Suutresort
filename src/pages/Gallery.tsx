@@ -34,7 +34,12 @@ export default function Gallery() {
     const loadMerged = (firestoreItems: any[] = []) => {
       const localCustom = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
       
-      const combined = [...firestoreItems];
+      // If a Firestore item is also in local storage (i.e. edited locally), prioritize the local storage version
+      const combined = firestoreItems.map(fItem => {
+        const localMatch = localCustom.find((lItem: any) => lItem.id === fItem.id);
+        return localMatch ? { ...fItem, ...localMatch } : fItem;
+      });
+
       localCustom.forEach((localItem: any) => {
         const exists = combined.some(item => item.id === localItem.id || item.image === localItem.image);
         if (!exists) {
@@ -145,12 +150,27 @@ export default function Gallery() {
                 <img 
                   src={getDirectDriveUrl(item.image)} 
                   alt={item.caption || `Gallery ${item.id}`} 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute inset-0 bg-brand-teal/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand-teal shadow-lg transform scale-90 group-hover:scale-100 transition-all duration-300">
-                    <Maximize2 size={24} />
+                
+                {/* Dark gradient overlay at the bottom always visible, containing custom stylized caption */}
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-5 pt-12 flex flex-col justify-end text-white">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand-yellow animate-pulse" />
+                    <span className="text-[10px] text-brand-yellow font-bold uppercase tracking-wider">
+                      {item.category === 'Nature' ? 'Байгаль' : item.category === 'Rooms' ? 'Амралт' : 'Хаус'}
+                    </span>
+                  </div>
+                  <p className="text-xs md:text-sm font-serif line-clamp-2 text-slate-100 font-medium leading-relaxed">
+                    {item.caption}
+                  </p>
+                </div>
+
+                {/* Overlaid zoom/maximize indicator appearing on hover */}
+                <div className="absolute inset-0 bg-brand-teal/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <div className="w-12 h-12 bg-white/95 text-brand-teal rounded-full flex items-center justify-center shadow-2xl transform scale-90 group-hover:scale-100 transition-all duration-300">
+                    <Maximize2 size={20} />
                   </div>
                 </div>
               </motion.div>

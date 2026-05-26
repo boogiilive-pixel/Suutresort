@@ -94,7 +94,10 @@ export default function Admin() {
   // Robust sync functions merging local cache and firestore streams
   const syncBookings = () => {
     const local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
-    const combined = [...firestoreBookingsRef.current];
+    const combined = firestoreBookingsRef.current.map((fItem: any) => {
+      const localMatch = local.find((lItem: any) => lItem.id === fItem.id);
+      return localMatch ? { ...fItem, ...localMatch } : fItem;
+    });
     local.forEach((lItem: any) => {
       const exists = combined.some(item => item.id === lItem.id);
       if (!exists) combined.push(lItem);
@@ -104,9 +107,12 @@ export default function Admin() {
 
   const syncNews = () => {
     const local = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
-    const combined = [...firestoreNewsRef.current];
+    const combined = firestoreNewsRef.current.map((fItem: any) => {
+      const localMatch = local.find((lItem: any) => lItem.id === fItem.id);
+      return localMatch ? { ...fItem, ...localMatch } : fItem;
+    });
     local.forEach((lItem: any) => {
-      const exists = combined.some(item => item.id === lItem.id || item.title === lItem.title);
+      const exists = combined.some(item => item.id === lItem.id);
       if (!exists) combined.push(lItem);
     });
     setNews(combined);
@@ -114,9 +120,12 @@ export default function Admin() {
 
   const syncGallery = () => {
     const local = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
-    const combined = [...firestoreGalleryRef.current];
+    const combined = firestoreGalleryRef.current.map((fItem: any) => {
+      const localMatch = local.find((lItem: any) => lItem.id === fItem.id);
+      return localMatch ? { ...fItem, ...localMatch } : fItem;
+    });
     local.forEach((lItem: any) => {
-      const exists = combined.some(item => item.id === lItem.id || item.image === lItem.image);
+      const exists = combined.some(item => item.id === lItem.id);
       if (!exists) combined.push(lItem);
     });
     setGallery(combined);
