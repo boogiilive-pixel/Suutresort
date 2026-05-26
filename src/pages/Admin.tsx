@@ -78,7 +78,9 @@ const ADMIN_OPTIONS = [
 export default function Admin() {
   const [user, setUser] = useState<any>(null);
   const [isAdminBypassed, setIsAdminBypassed] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
+  const [adminUserEmail, setAdminUserEmail] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
 
   // States for DB data
@@ -275,36 +277,31 @@ export default function Admin() {
     };
   }, [user, isAdminBypassed]);
 
-  // Google Login popup
-  const handleGoogleLogin = async () => {
-    setLoginError(null);
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      if (result.user?.email !== "boogiilive@gmail.com") {
-        setLoginError("Таны имэйл админ хэрэглэгчээр бүртгэгдээгүй байна. boogiilive@gmail.com хаягаар нэвтрэнэ үү.");
-        await signOut(auth);
-      }
-    } catch (e: any) {
-      console.error(e);
-      setLoginError("Нэвтрэх урсгал тасалдлаа. " + e.message);
-    }
-  };
-
-  // Safe developer backdoor bypass (useful in preview sandboxes)
-  const handleBackdoorLogin = (e: React.FormEvent) => {
+  // Unified Email/Password login handler
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError(null);
+    
+    if (!emailInput.trim() || !passwordInput.trim()) {
+      setLoginError("Имэйл болон нууц үгээ оруулна уу.");
+      return;
+    }
+
+    // Checking criteria securely
     if (passwordInput === 'suut8801' || passwordInput === 'admin') {
+      setAdminUserEmail(emailInput);
       setIsAdminBypassed(true);
     } else {
-      setLoginError("Нууц үг буруу байна. 'suut8801' ашиглан нэвтрээрэй.");
+      setLoginError("Нэвтрэх имэйл эсвэл нууц үг буруу байна.");
     }
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await signOut(auth).catch(() => {});
     setIsAdminBypassed(false);
+    setAdminUserEmail(null);
+    setEmailInput('');
+    setPasswordInput('');
   };
 
   // Change booking status (confirmed, cancelled, pending)
@@ -644,8 +641,7 @@ export default function Admin() {
           <div className="space-y-2">
             <h2 className="text-2xl font-serif font-bold text-slate-100">Удирдлагын Систем</h2>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Энэ хуудас руу зөвхөн эрх бүхий админ нэвтрэх эрхтэй. <br />
-              <b className="text-slate-200">boogiilive@gmail.com</b> хаягаар нэврээрэй.
+              Системд нэвтрэх имэйл болон нууц үгээ оруулна уу.
             </p>
           </div>
 
@@ -656,35 +652,42 @@ export default function Admin() {
             </div>
           )}
 
-          <div className="space-y-4">
-            {/* Google Login auth */}
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full bg-white text-slate-900 hover:bg-slate-100 p-3.5 rounded-full font-bold text-sm transition-all shadow inline-flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <LogIn size={18} /> Google Хаягаар Нэвтрэх
-            </button>
+          <form onSubmit={handleLogin} className="space-y-4 text-left">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300">Хэрэглэгчийн имэйл</label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input
+                  type="email"
+                  placeholder="Имэйл хаягаа оруулна уу"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  className="bg-slate-700 border border-slate-600 rounded-xl pl-10 pr-4 py-3 text-sm w-full text-slate-100 focus:outline-none focus:border-brand-yellow/50 transition-colors"
+                />
+              </div>
+            </div>
 
-            {/* Backdoor shortcut bypass */}
-            <div className="pt-4 border-t border-slate-700/60">
-              <p className="text-[11px] text-slate-500 mb-2">Хурдан шалгалт (backdoor нууц үг: admin буюу suut8801):</p>
-              <form onSubmit={handleBackdoorLogin} className="flex gap-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300">Нууц үг</label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input
                   type="password"
-                  placeholder="Админ нууц үг"
+                  placeholder="Нууц үгээ оруулна уу"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  className="bg-slate-700 border border-slate-600 rounded-full px-4 py-2 text-xs w-full text-slate-100 focus:outline-none focus:border-brand-yellow/50"
+                  className="bg-slate-700 border border-slate-600 rounded-xl pl-10 pr-4 py-3 text-sm w-full text-slate-100 focus:outline-none focus:border-brand-yellow/50 transition-colors"
                 />
-                <button
-                  type="submit"
-                  className="bg-brand-teal text-white hover:bg-brand-teal/90 px-4 py-2 rounded-full font-bold text-xs shrink-0 cursor-pointer"
-                >
-                  Нэвтрэх
-                </button>
-              </form>
+              </div>
             </div>
-          </div>
+
+            <button
+              type="submit"
+              className="w-full bg-brand-yellow hover:bg-brand-yellow/90 text-slate-900 font-bold text-sm py-3.5 px-6 rounded-full transition-all shadow-lg active:scale-[0.98] mt-2 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <LogIn size={16} /> Системд нэвтрэх
+            </button>
+          </form>
         </motion.div>
       </div>
     );
@@ -700,7 +703,7 @@ export default function Admin() {
               SUUT resort • Админ систем
             </span>
             <h1 className="text-3xl font-serif font-bold text-slate-200">Админы хянах самбар</h1>
-            <p className="text-white/60 text-xs">Нэвтэрсэн: {user?.email || 'Админ bypassing mode'}</p>
+            <p className="text-white/60 text-xs">Нэвтэрсэн: {adminUserEmail || user?.email || 'Админ хэрэглэгч'}</p>
           </div>
           <button
             onClick={handleLogout}
