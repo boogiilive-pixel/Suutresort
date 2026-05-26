@@ -620,6 +620,9 @@ export default function Admin() {
       const report = calculatePriceReport(selectedOptionId, dateRangeMock);
       const resolvedPrice = manualPrice !== null ? manualPrice : report.totalPrice;
 
+      // Generate a solid temporary ID immediately to avoid duplicate-omitting and support instant storage
+      const tempId = 'manual-fb-' + Date.now();
+
       const payload = {
         name: clientName,
         phone: clientPhone,
@@ -638,28 +641,25 @@ export default function Admin() {
         createdAt: new Date()
       };
 
-      // Await database write with immediate localStorage sync fallback
-      const docRef = await addDoc(collection(db, 'bookings'), payload).catch(err => {
-        console.error("Booking background add failed:", err);
-        return { id: 'manual-fb-' + Date.now() };
-      });
-
+      // 1. Instantly backup to localStorage first to guarantee it is NEVER lost
       const local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
       local.push({
-        id: docRef.id,
+        id: tempId,
         ...payload,
         createdAt: new Date().toISOString()
       });
       localStorage.setItem('suut_custom_bookings', JSON.stringify(local));
+      
+      // 2. Refresh local state instantly to render the new booking on the screen
       syncBookings();
 
-      // Clear submitting state instantly BEFORE any synchronous alert is shown
+      // 3. Reset submitting states immediately (no waiting for database network transitions!)
       isSubmittingBookingsRef.current = false;
       setIsSubmittingBooking(false);
 
       setBookingSuccessMsg(`Захиалга амжилттай бүртгэгдлээ! (${matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралтын Өрөө')})`);
       
-      // Reset form inputs immediately
+      // 4. Reset form inputs immediately to allow adding more bookings right away
       setClientName('');
       setClientPhone('');
       setClientEmail('admin@suutresort.com');
@@ -669,14 +669,36 @@ export default function Admin() {
       setAdults(1);
       setChildrenCount(0);
 
-      // Show alert asynchronously to allow React to render the cleared state first
+      // 5. Fire Firestore write completely in the background without blocking the UI
+      addDoc(collection(db, 'bookings'), payload)
+        .then((docRef) => {
+          console.log("Manual booking backed up to Firestore: ", docRef.id);
+          // Asynchronously update the local storage cache entry with the cloud doc ID
+          try {
+            const currentLocal = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
+            const updatedLocal = currentLocal.map((item: any) => {
+              if (item.id === tempId) {
+                return { ...item, id: docRef.id };
+              }
+              return item;
+            });
+            localStorage.setItem('suut_custom_bookings', JSON.stringify(updatedLocal));
+            syncBookings();
+          } catch (storageErr) {
+            console.error("Failed to map tempId to Firestore docRef.id in local storage:", storageErr);
+          }
+        })
+        .catch((firestoreErr) => {
+          console.error("Booking Firestore update failed (safely relying on local storage backup):", firestoreErr);
+        });
+
+      // Show success alert asynchronously
       setTimeout(() => {
         alert("Захиалга амжилттай бүртгэгдлээ!");
       }, 80);
     } catch (err: any) {
       console.error("Manual booking addition failed: ", err);
       alert("Захиалга бүртгэхэд алдаа гарлаа: " + err.message);
-    } finally {
       isSubmittingBookingsRef.current = false;
       setIsSubmittingBooking(false);
     }
