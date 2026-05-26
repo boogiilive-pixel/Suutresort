@@ -4,7 +4,7 @@ import { Calendar, User, Share2, Copy, Facebook, ArrowLeft, Eye, MessageCircle }
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '@/firebase';
 import ReactMarkdown from 'react-markdown';
-import { getDirectDriveUrl, safeToDate } from '@/lib/utils';
+import { getDirectDriveUrl, safeToDate, formatLocaleDate } from '@/lib/utils';
 
 interface NewsItem {
   id: string;
@@ -329,7 +329,7 @@ export default function News() {
                   <div className="flex items-center gap-4 text-xs text-brand-teal/55 font-medium">
                     <span className="flex items-center gap-1">
                       <Calendar size={14} />
-                      {item.createdAt?.toDate ? item.createdAt.toDate().toLocaleDateString('sh-MN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : ''}
+                      {item.createdAt ? formatLocaleDate(item.createdAt, { year: 'numeric', month: '2-digit', day: '2-digit' }) : ''}
                     </span>
                     <span className="flex items-center gap-1">
                       <User size={14} />
@@ -448,7 +448,7 @@ export default function News() {
                   <div className="flex items-center gap-6 text-xs text-brand-teal/50 font-bold border-b border-brand-teal/5 pb-4">
                     <span className="flex items-center gap-1">
                       <Calendar size={14} />
-                      {selectedNews.createdAt?.toDate ? selectedNews.createdAt.toDate().toLocaleDateString('sh-MN', { year: 'numeric', month: 'long', day: '2-digit' }) : ''}
+                      {selectedNews.createdAt ? formatLocaleDate(selectedNews.createdAt, { year: 'numeric', month: 'long', day: '2-digit' }) : ''}
                     </span>
                     <span className="flex items-center gap-1">
                       <User size={14} />

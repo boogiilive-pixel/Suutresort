@@ -50,3 +50,20 @@ export function safeToDate(val: any): Date {
   return isNaN(parsed.getTime()) ? new Date() : parsed;
 }
 
+export function formatLocaleDate(val: any, options?: Intl.DateTimeFormatOptions): string {
+  const date = safeToDate(val);
+  try {
+    return date.toLocaleDateString('mn-MN', options);
+  } catch (e) {
+    try {
+      return date.toLocaleDateString('en-US', options);
+    } catch (err) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+  }
+}
+
+

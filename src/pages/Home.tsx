@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, Star, CheckCircle2, MapPin, Users, Home as HomeIcon, Bed, ChevronLeft, ChevronRight, Quote, Calendar, Copy, Facebook } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { cn, safeToDate } from '@/lib/utils';
+import { cn, safeToDate, formatLocaleDate } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
@@ -278,7 +278,7 @@ export default function Home() {
         excerpt: item.content ? (item.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
         category: item.category || 'Мэдээ',
         image: item.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
-        date: safeToDate(item.createdAt).toLocaleDateString('sh-MN', { year: 'numeric', month: '2-digit', day: '2-digit' })
+        date: formatLocaleDate(item.createdAt, { year: 'numeric', month: '2-digit', day: '2-digit' })
       }));
       const activeDefaults = LOCAL_DEFAULT_NEWS.filter(def => !deletedDefaults.includes(def.id));
       const combined = [
@@ -302,7 +302,7 @@ export default function Home() {
         excerpt: item.content ? (item.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
         category: item.category || 'Мэдээ',
         image: item.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
-        date: safeToDate(item.createdAt).toLocaleDateString('sh-MN', { year: 'numeric', month: '2-digit', day: '2-digit' })
+        date: formatLocaleDate(item.createdAt, { year: 'numeric', month: '2-digit', day: '2-digit' })
       }));
 
       const combined = firestoreItems.map(fItem => {
@@ -339,7 +339,7 @@ export default function Home() {
           excerpt: data.content ? (data.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
           category: data.category || 'Мэдээ',
           image: data.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
-          date: safeToDate(data.createdAt).toLocaleDateString('sh-MN', { year: 'numeric', month: '2-digit', day: '2-digit' })
+          date: formatLocaleDate(data.createdAt, { year: 'numeric', month: '2-digit', day: '2-digit' })
         });
       });
       loadMergedNews(items);
