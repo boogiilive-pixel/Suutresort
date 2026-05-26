@@ -63,7 +63,7 @@
 }
 
 /* Available Days (Not disabled, not selected) - Soft Emerald Green Theme */
-.rdp-day:not(.rdp-day_disabled):not(.rdp-day_selected):not([disabled]):not([aria-disabled="true"]) {
+.rdp-day:not(.rdp-day_disabled):not(.rdp-day_selected):not(.rdp-disabled):not(.rdp-selected):not([disabled]):not([aria-disabled="true"]) {
   background-color: #ecfdf5 !important; /* bg-emerald-50 */
   color: #065f46 !important; /* text-emerald-800 */
   border: 1px solid #10b981 !important; /* border-emerald-500 */
@@ -71,14 +71,14 @@
   cursor: pointer !important;
 }
 
-.rdp-day:not(.rdp-day_disabled):not(.rdp-day_selected):not([disabled]):not([aria-disabled="true"]):hover {
+.rdp-day:not(.rdp-day_disabled):not(.rdp-day_selected):not(.rdp-disabled):not(.rdp-selected):not([disabled]):not([aria-disabled="true"]):hover {
   background-color: #10b981 !important; /* bg-emerald-500 */
   color: #ffffff !important;
   transform: translateY(-1px) scale(1.05);
 }
 
 /* Booked / Disabled Days (Reserved dates or dates in the past) - Soft Red/Rose Theme with Strikethrough */
-.rdp-day_disabled, .rdp-day[disabled], .rdp-day[aria-disabled="true"], .rdp-day--disabled {
+.rdp-day_disabled, .rdp-disabled, .rdp-day[disabled], .rdp-day[aria-disabled="true"], .rdp-day--disabled {
   background-color: #fef2f2 !important; /* bg-rose-50 */
   color: #ef4444 !important; /* text-red-500 */
   border: 1px solid #fca5a5 !important; /* border-red-200 */
@@ -89,7 +89,7 @@
 }
 
 /* Selected Days (The selected date range) - Core Pine Green Theme */
-.rdp-day_selected, .rdp-day_selected:hover {
+.rdp-day_selected, .rdp-day_selected:hover, .rdp-selected, .rdp-selected:hover {
   background-color: #004b49 !important; /* brand-teal dark green */
   color: #ffffff !important;
   font-weight: 800 !important;
@@ -98,7 +98,7 @@
 }
 
 /* Range Middle styles to keep high contrast text for in-between selected days */
-.rdp-day_range_middle {
+.rdp-day_range_middle, .rdp-range_middle {
   background-color: rgba(0, 75, 73, 0.15) !important;
   color: #004b49 !important;
   font-weight: 700 !important;
