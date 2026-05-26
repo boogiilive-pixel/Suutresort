@@ -119,6 +119,56 @@ export default function News() {
     }
   }, [news]);
 
+  // Dynamically update document title and Open Graph metadata when a specific news item is opened
+  useEffect(() => {
+    if (selectedNews) {
+      document.title = `${selectedNews.title} | SUUT Resort`;
+      
+      const updateMeta = (property: string, content: string, isName = false) => {
+        const attribute = isName ? 'name' : 'property';
+        let element = document.head.querySelector(`meta[${attribute}="${property}"]`);
+        if (!element) {
+          element = document.createElement('meta');
+          element.setAttribute(attribute, property);
+          document.head.appendChild(element);
+        }
+        element.setAttribute('content', content);
+      };
+
+      const plainExcerpt = selectedNews.content.replace(/[#*`_[\]]/g, '').slice(0, 150);
+
+      updateMeta('og:title', selectedNews.title);
+      updateMeta('og:description', plainExcerpt);
+      if (selectedNews.image) {
+        updateMeta('og:image', selectedNews.image);
+      }
+      
+      updateMeta('twitter:title', selectedNews.title, true);
+      updateMeta('twitter:description', plainExcerpt, true);
+      if (selectedNews.image) {
+        updateMeta('twitter:image', selectedNews.image, true);
+      }
+    } else {
+      document.title = 'SUUT Resort';
+      
+      const updateMeta = (property: string, content: string, isName = false) => {
+        const attribute = isName ? 'name' : 'property';
+        const element = document.head.querySelector(`meta[${attribute}="${property}"]`);
+        if (element) {
+          element.setAttribute('content', content);
+        }
+      };
+
+      updateMeta('og:title', 'Suut Resort');
+      updateMeta('og:description', 'Тав тухтай үйлчилгээ, найрсаг орчин, байгалийн үзэсгэлэн таныг хүлээж байна.');
+      updateMeta('og:image', 'https://lh3.googleusercontent.com/d/1EZJq9Y8EuxIs51EVyLnFUYGhIdQzAIjP');
+      
+      updateMeta('twitter:title', 'Suut Resort', true);
+      updateMeta('twitter:description', 'Тав тухтай үйлчилгээ, найрсаг орчин, байгалийн үзэсгэлэн таныг хүлээж байна.', true);
+      updateMeta('twitter:image', 'https://lh3.googleusercontent.com/d/1EZJq9Y8EuxIs51EVyLnFUYGhIdQzAIjP', true);
+    }
+  }, [selectedNews]);
+
   const handleCopyLink = (item: NewsItem, e: React.MouseEvent) => {
     e.stopPropagation();
     const shareUrl = `${window.location.origin}/#/news?id=${item.id}`;
