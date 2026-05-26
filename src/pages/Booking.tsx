@@ -171,6 +171,40 @@ export default function Booking() {
     return isBefore(date, startOfToday()) || mockBookedDates.some(bookedDate => isSameDay(bookedDate, date));
   };
 
+  const sendBookingEmailAuto = async (name: string, phone: string, email: string) => {
+    const checkInStr = selectedRange?.from ? format(selectedRange.from, 'yyyy-MM-dd') : '';
+    const checkOutStr = selectedRange?.to ? format(selectedRange.to, 'yyyy-MM-dd') : '';
+    
+    const payload = {
+      _subject: `🔔 ШИНЭ ЗАХИАЛГА: ${name} (${selectedOption?.title || 'Суут Амралт'})`,
+      _template: 'table',
+      _replyto: email,
+      "Захиалагчийн нэр": name,
+      "Утасны дугаар": phone,
+      "Имэйл хаяг": email,
+      "Төрөл": selectedType === 'house' ? 'Хаус түрээс' : 'Амралт/Ресорт өрөө',
+      "Сонгосон хувилбар": selectedOption?.title || (selectedType === 'house' ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт'),
+      "Нийт хоносон": `${priceReport.totalNights} хоног (${checkInStr} - ${checkOutStr})`,
+      "Энгийн өдөр (Ням-Пүрэв)": `${priceReport.weekdayNights} хоног (Нэг хоног: ${priceReport.weekdayRate.toLocaleString()}₮)`,
+      "Амралтын өдөр (Баасан-Бямба)": `${priceReport.weekendNights} хоног (Нэг хоног: ${priceReport.weekendRate.toLocaleString()}₮)`,
+      "Нийт дүн": `${priceReport.totalPrice.toLocaleString()}₮`
+    };
+
+    try {
+      await fetch('https://formsubmit.co/ajax/boogiilive@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      console.log('Automated booking email dispatched successfully to boogiilive@gmail.com');
+    } catch (error) {
+      console.error('Automated booking email dispatch failed:', error);
+    }
+  };
+
   const sendBookingEmail = (name: string, phone: string, email: string) => {
     const subject = encodeURIComponent(`Шинэ захиалга: ${name} (${selectedOption?.title || 'Суут Амралт'})`);
     
@@ -230,12 +264,14 @@ export default function Booking() {
       }
     });
 
-    // Хэрэглэгчийн вебдээр шууд амжилттай болсон төлөв рүү маш хурдан 150-200ms хугацаанд шилжүүлнэ
+    // Идэвхтэйгээр цаана имэйл чимээгүй илгээнэ
+    sendBookingEmailAuto(formData.name, formData.phone, formData.email);
+
+    // Хэрэглэгчийн вебдээр шууд амжилттай болсон төлөв рүү маш хурдан 250ms хугацаанд шилжүүлнэ
     setTimeout(() => {
       setIsSuccess(true);
       setIsSubmitting(false);
-      sendBookingEmail(formData.name, formData.phone, formData.email);
-    }, 150);
+    }, 250);
   };
 
   return (
