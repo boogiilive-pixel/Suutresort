@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import React from 'react';
-import { Users, Maximize, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Users, Maximize, CheckCircle2, ArrowRight, Facebook, Image } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +22,7 @@ const houses = [
       'Шинэ тавилгуудтай /80’ TV, хөргөгч, дуков/',
       '2 ариун цэврийн өрөөтэй 🔥'
     ],
-    image: 'https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN'
+    image: 'https://lh3.googleusercontent.com/d/1hUTtrjo0_w0pbY9Pd5C4HGOYRF6VkyRa'
   },
   {
     id: 'villa-2',
@@ -41,7 +41,7 @@ const houses = [
       'Нэмэлтээр маш тухтай 10 эвхдэг ор, 20 мишок',
       'Гал тогооны иж бүрэн хэрэгсэлтэй /25 хүний/'
     ],
-    image: 'https://lh3.googleusercontent.com/d/1OWnzvTHAaMOfQ3l0IsMxayzXi6bhNkfd'
+    image: 'https://lh3.googleusercontent.com/d/1IoAQw8BDVtkB4dL3ZC6ek7U6SfKdh_gu'
   },
   {
     id: 'villa-3',
@@ -60,7 +60,7 @@ const houses = [
       'Шорлогны зуухтай 😋',
       'Захиалгаар энгийн, баярын хоол гарна. 👨‍🍳'
     ],
-    image: 'https://lh3.googleusercontent.com/d/1tiyuEYQ8eHZlLsFng6zYfMCytWSmJha2'
+    image: 'https://lh3.googleusercontent.com/d/1fWwKCW7vLNqrj6QSMm1k2EO9CEtrOT__'
   }
 ];
 
@@ -172,6 +172,32 @@ export default function Houses() {
               </div>
             </motion.div>
           ))}
+        </div>
+      </section>
+
+      {/* Dynamic Links Section Above Footer */}
+      <section className="pb-24 pt-4 bg-white border-t border-brand-teal/10">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <Link
+              to="/gallery"
+              state={{ category: "Хаус" }}
+              className="flex items-center justify-center gap-3 px-8 py-4 bg-brand-teal text-white hover:bg-brand-teal/90 rounded-full font-bold text-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 shadow-md w-full sm:w-auto"
+            >
+              <Image size={22} className="text-brand-yellow" />
+              ХАУС бусад зураг үзэх
+            </Link>
+            
+            <a
+              href="https://www.facebook.com/profile.php?id=61584518352323"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-3 px-8 py-4 bg-[#1877F2]/10 text-[#1877F2] border-2 border-[#1877F2]/20 hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2] rounded-full font-bold text-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 shadow-md w-full sm:w-auto"
+            >
+              <Facebook size={22} />
+              Хаусын Facebook хуудас
+            </a>
+          </div>
         </div>
       </section>
     </div>

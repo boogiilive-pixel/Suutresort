@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import React, { useState } from 'react';
 import { X, Maximize2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 const galleryItems = [
@@ -12,10 +13,10 @@ const galleryItems = [
   { id: 4, category: 'Rooms', image: 'https://lh3.googleusercontent.com/d/1mu0C8z2FhG7HJF6vuVEItWV-O2WDkFYa' },
   { id: 5, category: 'Rooms', image: 'https://lh3.googleusercontent.com/d/1zoXTewURVSFqXbQvarGOUJV046P0J0DU' },
   // Houses
-  { id: 6, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1OWnzvTHAaMOfQ3l0IsMxayzXi6bhNkfd' },
+  { id: 6, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1IoAQw8BDVtkB4dL3ZC6ek7U6SfKdh_gu' },
   { id: 7, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1cQEYwq-79GPLXX6QmOyDrrQ_bwX51Z8T' },
-  { id: 8, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN' },
-  { id: 9, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1tiyuEYQ8eHZlLsFng6zYfMCytWSmJha2' },
+  { id: 8, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1hUTtrjo0_w0pbY9Pd5C4HGOYRF6VkyRa' },
+  { id: 9, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1fWwKCW7vLNqrj6QSMm1k2EO9CEtrOT__' },
   { id: 10, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1weJpTiCTRZwGq5smajOL4tcOQWj2mqjG' },
   { id: 11, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1fWwKCW7vLNqrj6QSMm1k2EO9CEtrOT__' },
 ];
@@ -23,7 +24,10 @@ const galleryItems = [
 const categories = ['Бүгд', 'Байгаль', 'Амралт', 'Хаус'];
 
 export default function Gallery() {
-  const [activeCategory, setActiveCategory] = useState('Бүгд');
+  const location = useLocation();
+  const [activeCategory, setActiveCategory] = useState<string>(
+    (location.state as any)?.category || 'Бүгд'
+  );
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const filteredItems = galleryItems.filter(item => {

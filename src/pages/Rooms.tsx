@@ -42,7 +42,7 @@ export default function Rooms() {
       <section className="relative h-[70vh] flex items-center justify-center text-white overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://lh3.googleusercontent.com/d/1tiyuEYQ8eHZlLsFng6zYfMCytWSmJha2" 
+            src="https://lh3.googleusercontent.com/d/1fWwKCW7vLNqrj6QSMm1k2EO9CEtrOT__" 
             alt="Rooms Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"

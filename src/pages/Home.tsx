@@ -15,7 +15,7 @@ const highlights = [
     title: 'Бүрэн тохижуулсан, цэвэр модон хаус',
     description: 'Хүнсээ аваад очиход л бүх хэрэгтэй зүйлс нь бэлэн, бүрэн тохижуулсан хаус таныг хүлээж байна.',
     icon: <HomeIcon className="text-brand-red" size={32} />,
-    image: 'https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN'
+    image: 'https://lh3.googleusercontent.com/d/1hUTtrjo0_w0pbY9Pd5C4HGOYRF6VkyRa'
   },
   {
     title: 'Тохилог өрөөнүүд',
@@ -347,7 +347,7 @@ export default function Home() {
               <div className="p-4">
                 <div className="aspect-[16/10] rounded-xl overflow-hidden relative group">
                   <img 
-                    src="https://lh3.googleusercontent.com/d/15Bp6lMsOa5kELfVPEmG2xtgv0AwlaNJN" 
+                    src="https://lh3.googleusercontent.com/d/1hUTtrjo0_w0pbY9Pd5C4HGOYRF6VkyRa" 
                     alt="House Rental" 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     referrerPolicy="no-referrer"
@@ -546,7 +546,7 @@ export default function Home() {
             {[
               'https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG',
               'https://lh3.googleusercontent.com/d/1mu0C8z2FhG7HJF6vuVEItWV-O2WDkFYa',
-              'https://lh3.googleusercontent.com/d/1OWnzvTHAaMOfQ3l0IsMxayzXi6bhNkfd',
+              'https://lh3.googleusercontent.com/d/1IoAQw8BDVtkB4dL3ZC6ek7U6SfKdh_gu',
               'https://lh3.googleusercontent.com/d/1VPMeteBUV7gEU-Ay-GqdoINLS-gUJW7H'
             ].map((img, i) => (
               <motion.div
