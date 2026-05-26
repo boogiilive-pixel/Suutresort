@@ -617,7 +617,7 @@ export default function Admin() {
       localStorage.setItem('suut_custom_bookings', JSON.stringify(local));
       syncBookings();
 
-      setBookingSuccessMsg(`Захиалгыг амжилттай нэмж, календарт хаалт хийлээ! (${matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралтын Өрөө')})`);
+      setBookingSuccessMsg(`Захиалга амжилттай бүртгэгдлээ! (${matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралтын Өрөө')})`);
       
       // reset forms
       setClientName('');
@@ -625,6 +625,12 @@ export default function Admin() {
       setCheckInDate('');
       setCheckOutDate('');
       setManualPrice(null);
+
+      // Brief timeout to let states and localStorage update, then prompt alert and reload the page
+      setTimeout(() => {
+        alert("Захиалга амжилттай бүртгэгдлээ!");
+        window.location.reload();
+      }, 500);
     } catch (err: any) {
       console.error("Manual booking addition failed: ", err);
       alert("Захиалга бүртгэхэд алдаа гарлаа: " + err.message);
@@ -1046,7 +1052,7 @@ export default function Admin() {
                     disabled={isSubmittingBooking}
                     className="w-full bg-brand-teal hover:bg-brand-teal/90 text-white p-3.5 rounded-full font-bold text-sm transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
                   >
-                    {isSubmittingBooking ? 'Хаалт бүртгэж байна...' : 'Захиалга гар аргаар үүсгэх'}
+                    {isSubmittingBooking ? 'Захиалга бүртгэж байна...' : 'Захиалга гар аргаар үүсгэх'}
                   </button>
                 </form>
               </div>

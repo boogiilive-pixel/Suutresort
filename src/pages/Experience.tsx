@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
-import { Leaf, Wind, Sun, Coffee, Camera, Music, Trophy, PartyPopper, Gamepad2, Users, Check, Gift, HelpCircle } from 'lucide-react';
+import { Leaf, Wind, Sun, Coffee, Camera, Music, Trophy, PartyPopper, Gamepad2, Users, Check, Gift, HelpCircle, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const activities = [
   {
@@ -281,6 +282,16 @@ export default function Experience() {
                 <span>
                   <strong className="text-brand-teal font-semibold">Санамж:</strong> Хүний тооноос хамааран үнийг тохиролцох боломжтой.
                 </span>
+              </div>
+
+              {/* Booking CTA Button */}
+              <div className="pt-2 flex justify-start">
+                <Link
+                  to="/booking"
+                  className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-brand-yellow hover:bg-brand-yellow/90 text-slate-900 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-95 cursor-pointer shadow-md"
+                >
+                  Захиалга өгөх <ArrowRight size={18} />
+                </Link>
               </div>
             </div>
 
