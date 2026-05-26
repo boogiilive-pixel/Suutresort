@@ -4,7 +4,7 @@ import { Calendar, User, Share2, Copy, Facebook, ArrowLeft, Eye, MessageCircle }
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '@/firebase';
 import ReactMarkdown from 'react-markdown';
-import { getDirectDriveUrl } from '@/lib/utils';
+import { getDirectDriveUrl, safeToDate } from '@/lib/utils';
 
 interface NewsItem {
   id: string;
@@ -91,7 +91,7 @@ export default function News() {
           image: data.image,
           category: data.category || 'Мэдээ',
           author: data.author || 'Админ',
-          createdAt: data.createdAt ? { toDate: () => data.createdAt.toDate() } : { toDate: () => new Date() }
+          createdAt: { toDate: () => safeToDate(data.createdAt) }
         });
       });
       

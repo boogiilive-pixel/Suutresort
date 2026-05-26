@@ -282,7 +282,7 @@ export default function Booking() {
       weekendNights: priceReport.weekendNights,
       totalPrice: priceReport.totalPrice,
       status: 'pending',
-      createdAt: serverTimestamp(),
+      createdAt: new Date(),
     };
 
     // Firebase-ийн хадгалах үйлдлийг ард ажиллуулснаар хэрэглэгчийн интерфейс хүлээхгүй сулрахгүй

@@ -30,3 +30,23 @@ export function getDirectDriveUrl(url: string): string {
   
   return trimmed;
 }
+
+export function safeToDate(val: any): Date {
+  if (!val) return new Date();
+  if (typeof val.toDate === 'function') {
+    try {
+      return val.toDate();
+    } catch (e) {
+      console.warn("Error calling toDate on field:", e);
+    }
+  }
+  if (val instanceof Date) {
+    return val;
+  }
+  if (val.seconds !== undefined && typeof val.seconds === 'number') {
+    return new Date(val.seconds * 1000);
+  }
+  const parsed = new Date(val);
+  return isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+

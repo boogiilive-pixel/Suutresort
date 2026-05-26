@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, Star, CheckCircle2, MapPin, Users, Home as HomeIcon, Bed, ChevronLeft, ChevronRight, Quote, Calendar, Copy, Facebook } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { cn, safeToDate } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
@@ -283,7 +283,7 @@ export default function Home() {
           excerpt: data.content ? (data.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
           category: data.category || 'Мэдээ',
           image: data.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
-          date: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('sh-MN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : new Date().toLocaleDateString('sh-MN')
+          date: safeToDate(data.createdAt).toLocaleDateString('sh-MN', { year: 'numeric', month: '2-digit', day: '2-digit' })
         });
       });
       setLatestNews(items.length > 0 ? items : LOCAL_DEFAULT_NEWS);

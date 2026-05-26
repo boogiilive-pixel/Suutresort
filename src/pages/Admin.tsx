@@ -168,7 +168,7 @@ export default function Admin() {
               category: item.category,
               image: item.image,
               author: item.author,
-              createdAt: serverTimestamp()
+              createdAt: new Date()
             });
           } catch (e) {
             console.error("Failed to seed default news: ", e);
@@ -302,7 +302,7 @@ export default function Admin() {
       } else {
         await addDoc(collection(db, 'news'), {
           ...payload,
-          createdAt: serverTimestamp()
+          createdAt: new Date()
         });
         setNewsSuccessMsg("Мэдээг амжилттай нийтэллээ!");
       }
@@ -374,7 +374,7 @@ export default function Admin() {
       } else {
         await addDoc(collection(db, 'gallery'), {
           ...payload,
-          createdAt: serverTimestamp()
+          createdAt: new Date()
         });
         setGallerySuccessMsg("Шинэ зургийг галерейд амжилттай нэмж нийтэллээ!");
       }
@@ -430,7 +430,7 @@ export default function Admin() {
         weekendNights: report.weekendNights || 0,
         totalPrice: resolvedPrice,
         status: 'confirmed', // Admin manual checkouts default directly to confirmed
-        createdAt: serverTimestamp()
+        createdAt: new Date()
       };
 
       await addDoc(collection(db, 'bookings'), payload);
