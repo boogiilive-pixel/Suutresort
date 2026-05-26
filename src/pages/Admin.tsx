@@ -103,8 +103,25 @@ export default function Admin() {
       console.error("Local storage error in syncBookings:", e);
     }
     
-    // Start with Firestore bookings
-    const combined = [...firestoreBookingsRef.current];
+    // Start with Firestore bookings, merging any client-side overrides (especially status modifications!)
+    const combined = firestoreBookingsRef.current.map((fItem: any) => {
+      const localMatch = local.find((lItem: any) => 
+        lItem.id === fItem.id ||
+        (lItem.name === fItem.name && 
+         lItem.phone === fItem.phone && 
+         lItem.checkIn === fItem.checkIn && 
+         lItem.checkOut === fItem.checkOut && 
+         lItem.optionId === fItem.optionId)
+      );
+      if (localMatch) {
+        return {
+          ...fItem,
+          ...localMatch,
+          status: localMatch.status || fItem.status
+        };
+      }
+      return fItem;
+    });
 
     // Merge in any other local bookings, deduplicating both by ID and by exact details
     local.forEach((lItem: any) => {
@@ -342,20 +359,58 @@ export default function Admin() {
   // Change booking status (confirmed, cancelled, pending)
   const handleUpdateStatus = async (bookingId: string, newStatus: string) => {
     try {
-      const dRef = doc(db, 'bookings', bookingId);
-      await updateDoc(dRef, { status: newStatus }).catch(() => {});
+      console.log(`Updating booking ${bookingId} status to ${newStatus}`);
 
-      // Backup status change to localStorage
-      const local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
-      const updated = local.map((item: any) => {
+      // 1. Instantly update local React state and reference refs for instantaneous UI feedback (0ms)
+      setBookings((prev) =>
+        prev.map((item: any) => {
+          if (item.id === bookingId) return { ...item, status: newStatus };
+          return item;
+        })
+      );
+
+      firestoreBookingsRef.current = firestoreBookingsRef.current.map((item: any) => {
         if (item.id === bookingId) return { ...item, status: newStatus };
         return item;
       });
-      localStorage.setItem('suut_custom_bookings', JSON.stringify(updated));
+
+      // 2. Backup status change to localStorage
+      const local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
+      const existsInLocal = local.some((item: any) => item.id === bookingId);
+      let updatedLocal = [];
+      if (existsInLocal) {
+        updatedLocal = local.map((item: any) => {
+          if (item.id === bookingId) return { ...item, status: newStatus };
+          return item;
+        });
+      } else {
+        // Find existing booking in current state to back it up with updated status
+        const originalBooking = bookings.find((b: any) => b.id === bookingId);
+        updatedLocal = [...local];
+        if (originalBooking) {
+          updatedLocal.push({ ...originalBooking, status: newStatus });
+        } else {
+          updatedLocal.push({ id: bookingId, status: newStatus });
+        }
+      }
+      localStorage.setItem('suut_custom_bookings', JSON.stringify(updatedLocal));
+
+      // Trigger synchrony sync directly
       syncBookings();
-    } catch (err) {
+
+      // 3. Try Firestore write in background without blocking UI
+      const dRef = doc(db, 'bookings', bookingId);
+      updateDoc(dRef, { status: newStatus })
+        .then(() => {
+          console.log(`Firestore booking ${bookingId} successfully updated to ${newStatus}`);
+        })
+        .catch((err) => {
+          console.warn("Firestore updateDoc skipped or failed (offline/sandbox backup handles this):", err);
+        });
+
+    } catch (err: any) {
       console.error("Failed to update status: ", err);
-      alert("Төлөв өөрчлөхөд алдаа гарлаа: " + err);
+      alert("Төлөв өөрчлөхөд алдаа гарлаа: " + err.message);
     }
   };
 
