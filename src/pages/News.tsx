@@ -79,6 +79,31 @@ export default function News() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
+    const loadMerged = (firestoreItems: NewsItem[] = []) => {
+      const localCustom = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
+      const parsedLocal = localCustom.map((item: any) => ({
+        ...item,
+        createdAt: { toDate: () => safeToDate(item.createdAt) }
+      }));
+
+      const combined = [...firestoreItems];
+      parsedLocal.forEach((localItem: any) => {
+        const exists = combined.some(item => item.id === localItem.id || item.title === localItem.title);
+        if (!exists) {
+          combined.push(localItem);
+        }
+      });
+
+      const mergedNews = [
+        ...combined,
+        ...DEFAULT_NEWS.filter(def => !combined.some(cust => cust.title === def.title))
+      ];
+      setNews(mergedNews);
+    };
+
+    // Load instantly from localStorage first
+    loadMerged([]);
+
     const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const items: NewsItem[] = [];
@@ -94,15 +119,11 @@ export default function News() {
           createdAt: { toDate: () => safeToDate(data.createdAt) }
         });
       });
-      
-      const mergedNews = [
-        ...items,
-        ...DEFAULT_NEWS.filter(def => !items.some(cust => cust.title === def.title))
-      ];
-      setNews(mergedNews);
+      loadMerged(items);
       setLoading(false);
     }, (err) => {
       console.warn('News listening failed (falling back to default local data):', err);
+      loadMerged([]);
       setLoading(false);
     });
 

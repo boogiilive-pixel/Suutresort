@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Lock, LogIn, Calendar, Plus, FileText, Check, X, Search, 
@@ -86,6 +86,42 @@ export default function Admin() {
   const [news, setNews] = useState<any[]>([]);
   const [gallery, setGallery] = useState<any[]>([]);
 
+  // Raw Firestore items (for merging)
+  const firestoreBookingsRef = useRef<any[]>([]);
+  const firestoreNewsRef = useRef<any[]>([]);
+  const firestoreGalleryRef = useRef<any[]>([]);
+
+  // Robust sync functions merging local cache and firestore streams
+  const syncBookings = () => {
+    const local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
+    const combined = [...firestoreBookingsRef.current];
+    local.forEach((lItem: any) => {
+      const exists = combined.some(item => item.id === lItem.id);
+      if (!exists) combined.push(lItem);
+    });
+    setBookings(combined);
+  };
+
+  const syncNews = () => {
+    const local = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
+    const combined = [...firestoreNewsRef.current];
+    local.forEach((lItem: any) => {
+      const exists = combined.some(item => item.id === lItem.id || item.title === lItem.title);
+      if (!exists) combined.push(lItem);
+    });
+    setNews(combined);
+  };
+
+  const syncGallery = () => {
+    const local = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
+    const combined = [...firestoreGalleryRef.current];
+    local.forEach((lItem: any) => {
+      const exists = combined.some(item => item.id === lItem.id || item.image === lItem.image);
+      if (!exists) combined.push(lItem);
+    });
+    setGallery(combined);
+  };
+
   // Navigation tabs inside admin
   const [activeTab, setActiveTab] = useState<'bookings' | 'add-booking' | 'add-news' | 'add-gallery'>('bookings');
 
@@ -137,6 +173,11 @@ export default function Admin() {
     const isAuthorized = (user?.email === "boogiilive@gmail.com") || isAdminBypassed;
     if (!isAuthorized) return;
 
+    // Load instantly from local storage first (zero latency)
+    syncBookings();
+    syncNews();
+    syncGallery();
+
     // Load bookings in real-time
     const qBookings = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'));
     const unsubBookings = onSnapshot(qBookings, (snapshot) => {
@@ -144,9 +185,11 @@ export default function Admin() {
       snapshot.forEach((snap) => {
         list.push({ id: snap.id, ...snap.data() });
       });
-      setBookings(list);
+      firestoreBookingsRef.current = list;
+      syncBookings();
     }, (err) => {
       console.error("Error loading bookings as admin: ", err);
+      syncBookings();
     });
 
     // Load news in real-time
@@ -175,10 +218,12 @@ export default function Admin() {
           }
         }
       } else {
-        setNews(list);
+        firestoreNewsRef.current = list;
+        syncNews();
       }
     }, (err) => {
       console.error("Error loading news as admin: ", err);
+      syncNews();
     });
 
     // Load gallery in real-time
@@ -188,9 +233,11 @@ export default function Admin() {
       snapshot.forEach((snap) => {
         list.push({ id: snap.id, ...snap.data() });
       });
-      setGallery(list);
+      firestoreGalleryRef.current = list;
+      syncGallery();
     }, (err) => {
       console.error("Error loading gallery as admin: ", err);
+      syncGallery();
     });
 
     return () => {
@@ -248,6 +295,12 @@ export default function Admin() {
     if (!window.confirm("Та энэ мэдээг устгахдаа итгэлтэй байна уу?")) return;
     try {
       await deleteDoc(doc(db, 'news', newsId));
+      
+      // Update local storage backup
+      const local = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
+      const updated = local.filter((item: any) => item.id !== newsId);
+      localStorage.setItem('suut_custom_news', JSON.stringify(updated));
+      syncNews();
     } catch (err) {
       console.error("Delete news failed: ", err);
     }
@@ -295,14 +348,24 @@ export default function Admin() {
     };
 
     try {
+      const local = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
       if (editingNews) {
         // Kick off update in background so UI does not wait on slow sandbox server handshakes
         updateDoc(doc(db, 'news', editingNews.id), payload).catch(err => {
           console.error("News background update failed:", err);
         });
+
+        // Update local storage backup
+        const updated = local.map((item: any) => {
+          if (item.id === editingNews.id) return { ...item, ...payload };
+          return item;
+        });
+        localStorage.setItem('suut_custom_news', JSON.stringify(updated));
+
         setNewsSuccessMsg("Мэдээг амжилттай засаж шинэчиллээ!");
         setEditingNews(null);
       } else {
+        const localId = 'local-' + Date.now();
         // Kick off addition in background so UI does not wait on slow sandbox server handshakes
         addDoc(collection(db, 'news'), {
           ...payload,
@@ -310,9 +373,22 @@ export default function Admin() {
         }).catch(err => {
           console.error("News background add failed:", err);
         });
+
+        // Add to local storage backup
+        const newItem = {
+          id: localId,
+          ...payload,
+          createdAt: new Date().toISOString()
+        };
+        local.unshift(newItem);
+        localStorage.setItem('suut_custom_news', JSON.stringify(local));
+
         setNewsSuccessMsg("Мэдээг амжилттай нийтэллээ!");
       }
       
+      // Sync UI instantly
+      syncNews();
+
       // reset form
       setNewsTitle('');
       setNewsContent('');
@@ -332,6 +408,12 @@ export default function Admin() {
     if (!window.confirm("Та энэ зургийг устгахдаа итгэлтэй байна уу?")) return;
     try {
       await deleteDoc(doc(db, 'gallery', galleryId));
+
+      // Update local storage backup
+      const local = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
+      const updated = local.filter((item: any) => item.id !== galleryId);
+      localStorage.setItem('suut_custom_gallery', JSON.stringify(updated));
+      syncGallery();
     } catch (err) {
       console.error("Delete gallery image failed: ", err);
     }
@@ -373,14 +455,24 @@ export default function Admin() {
     };
 
     try {
+      const local = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
       if (editingGallery) {
         // Kick off update in background so UI does not wait on slow sandbox server handshakes
         updateDoc(doc(db, 'gallery', editingGallery.id), payload).catch(err => {
           console.error("Gallery background update failed:", err);
         });
+
+        // Update local storage backup
+        const updated = local.map((item: any) => {
+          if (item.id === editingGallery.id) return { ...item, ...payload };
+          return item;
+        });
+        localStorage.setItem('suut_custom_gallery', JSON.stringify(updated));
+
         setGallerySuccessMsg("Зургийн мэдээллийг амжилттай шинэчиллээ!");
         setEditingGallery(null);
       } else {
+        const localId = 'local-' + Date.now();
         // Kick off addition in background so UI does not wait on slow sandbox server handshakes
         addDoc(collection(db, 'gallery'), {
           ...payload,
@@ -388,8 +480,21 @@ export default function Admin() {
         }).catch(err => {
           console.error("Gallery background add failed:", err);
         });
+
+        // Add to local storage backup
+        const newItem = {
+          id: localId,
+          ...payload,
+          createdAt: new Date().toISOString()
+        };
+        local.unshift(newItem);
+        localStorage.setItem('suut_custom_gallery', JSON.stringify(local));
+
         setGallerySuccessMsg("Шинэ зургийг галерейд амжилттай нэмж нийтэллээ!");
       }
+
+      // Sync UI instantly
+      syncGallery();
 
       // Reset form
       setGalleryImage('https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG');

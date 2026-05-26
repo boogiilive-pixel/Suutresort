@@ -272,6 +272,32 @@ export default function Home() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
+    const loadMergedNews = (firestoreItems: any[] = []) => {
+      const localCustom = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
+      const parsedLocal = localCustom.map((item: any) => ({
+        id: item.id,
+        title: item.title || '',
+        excerpt: item.content ? (item.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
+        category: item.category || 'Мэдээ',
+        image: item.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
+        date: safeToDate(item.createdAt).toLocaleDateString('sh-MN', { year: 'numeric', month: '2-digit', day: '2-digit' })
+      }));
+
+      const combined = [...firestoreItems];
+      parsedLocal.forEach((localItem: any) => {
+        const exists = combined.some(item => item.id === localItem.id || item.title === localItem.title);
+        if (!exists) {
+          combined.push(localItem);
+        }
+      });
+
+      const merged = combined.length > 0 ? combined.slice(0, 3) : LOCAL_DEFAULT_NEWS;
+      setLatestNews(merged);
+    };
+
+    // Load instantly from localStorage first
+    loadMergedNews([]);
+
     const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'), limit(3));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const items: any[] = [];
@@ -286,10 +312,10 @@ export default function Home() {
           date: safeToDate(data.createdAt).toLocaleDateString('sh-MN', { year: 'numeric', month: '2-digit', day: '2-digit' })
         });
       });
-      setLatestNews(items.length > 0 ? items : LOCAL_DEFAULT_NEWS);
+      loadMergedNews(items);
     }, (err) => {
       console.warn("Home news query failed, falling back safely:", err);
-      setLatestNews(LOCAL_DEFAULT_NEWS);
+      loadMergedNews([]);
     });
     return () => unsubscribe();
   }, []);

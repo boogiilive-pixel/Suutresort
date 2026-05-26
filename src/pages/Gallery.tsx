@@ -29,8 +29,30 @@ export default function Gallery() {
   const [galleryList, setGalleryList] = useState<any[]>(DEFAULT_GALLERY);
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
-  // Read gallery data from firestore in real-time
+  // Read gallery data from firestore in real-time with LocalStorage fallback
   useEffect(() => {
+    const loadMerged = (firestoreItems: any[] = []) => {
+      const localCustom = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
+      
+      const combined = [...firestoreItems];
+      localCustom.forEach((localItem: any) => {
+        const exists = combined.some(item => item.id === localItem.id || item.image === localItem.image);
+        if (!exists) {
+          combined.push(localItem);
+        }
+      });
+
+      // Merge custom items with DEFAULT_GALLERY
+      const merged = [
+        ...combined,
+        ...DEFAULT_GALLERY.filter(def => !combined.some(cust => cust.image === def.image))
+      ];
+      setGalleryList(merged);
+    };
+
+    // Load instantly from localStorage first
+    loadMerged([]);
+
     const q = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const items: any[] = [];
@@ -44,15 +66,10 @@ export default function Gallery() {
           createdAt: data.createdAt
         });
       });
-      // Merge Firestore custom gallery items with DEFAULT_GALLERY
-      const merged = [
-        ...items,
-        ...DEFAULT_GALLERY.filter(def => !items.some(cust => cust.image === def.image))
-      ];
-      setGalleryList(merged);
+      loadMerged(items);
     }, (err) => {
       console.warn("Gallery listening failed (falling back safely):", err);
-      setGalleryList(DEFAULT_GALLERY);
+      loadMerged([]);
     });
     return () => unsubscribe();
   }, []);
