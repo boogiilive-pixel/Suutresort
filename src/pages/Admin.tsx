@@ -70,9 +70,9 @@ const ADMIN_OPTIONS = [
   { id: 'villa-1', type: 'house', title: 'Цэвэр Модон Хаус (Тав тух & Халаалт)' },
   { id: 'villa-2', type: 'house', title: 'Цэвэр Модон Хаус (Унтлагын хэсэг & Амралт)' },
   { id: 'villa-3', type: 'house', title: 'Цэвэр Модон Хаус (Тоглоом & Энтертайнмент)' },
-  { id: 'room-1', type: 'room', title: 'Стандарт өрөө' },
-  { id: 'room-2', type: 'room', title: 'Делюкс өрөө' },
-  { id: 'room-3', type: 'room', title: 'Гэр бүлийн өрөө' },
+  { id: 'room-1', type: 'room', title: 'Стандарт' },
+  { id: 'room-2', type: 'room', title: 'Делюкс' },
+  { id: 'room-3', type: 'room', title: 'Гэр бүлийн' },
 ];
 
 export default function Admin() {
@@ -674,7 +674,7 @@ export default function Admin() {
         phone: clientPhone,
         email: clientEmail || 'admin@suutresort.com',
         optionId: selectedOptionId,
-        optionTitle: matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралтын Өрөө'),
+        optionTitle: matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт'),
         bookingType: isHouse ? 'house' : 'room',
         checkIn: checkInDate,
         checkOut: checkOutDate,
@@ -703,7 +703,7 @@ export default function Admin() {
       isSubmittingBookingsRef.current = false;
       setIsSubmittingBooking(false);
 
-      setBookingSuccessMsg(`Захиалга амжилттай бүртгэгдлээ! (${matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралтын Өрөө')})`);
+      setBookingSuccessMsg(`Захиалга амжилттай бүртгэгдлээ! (${matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт')})`);
       
       // 4. Reset form inputs immediately to allow adding more bookings right away
       setClientName('');
@@ -973,7 +973,7 @@ export default function Admin() {
                             </td>
                             <td className="p-4">
                               <div className="font-bold text-xs bg-slate-100 py-1 px-2.5 rounded-md inline-block text-brand-teal mb-1">
-                                {b.bookingType === 'house' ? 'Хаус түрээс' : 'Амралт/Өрөө'}
+                                {b.bookingType === 'house' ? 'Хаус түрээс' : 'Амралт/Ресорт'}
                               </div>
                               <div className="font-semibold text-slate-700 text-xs max-w-[200px] leading-relaxed truncate" title={b.optionTitle}>
                                 {b.optionTitle}
@@ -1089,7 +1089,7 @@ export default function Admin() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-brand-teal">Сонгох Хаус эсвэл Өрөө *</label>
+                    <label className="text-xs font-bold text-brand-teal">Сонгох Хаус эсвэл Амралт/Ресорт *</label>
                     <select
                       value={selectedOptionId}
                       onChange={(e) => setSelectedOptionId(e.target.value)}
@@ -1539,7 +1539,7 @@ export default function Admin() {
                 <div>
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Сонгосон төрөл</div>
                   <span className="bg-brand-teal/10 text-brand-teal font-extrabold px-3 py-1 rounded-full text-[10px] uppercase tracking-wider">
-                    {confirmingBooking.bookingType === 'house' ? 'Модон Хаус түрээс' : 'Амралтын Өрөө'}
+                    {confirmingBooking.bookingType === 'house' ? 'Модон Хаус түрээс' : 'Амралт/Ресорт'}
                   </span>
                 </div>
                 <div>

@@ -77,9 +77,9 @@ const options: Option[] = [
   { id: 'villa-1', type: 'house', title: 'Цэвэр Модон Хаус (Тав тух & Халаалт)', price: '600,000₮ - 800,000₮', image: 'https://lh3.googleusercontent.com/d/1hUTtrjo0_w0pbY9Pd5C4HGOYRF6VkyRa' },
   { id: 'villa-2', type: 'house', title: 'Цэвэр Модон Хаус (Унтлагын хэсэг & Амралт)', price: '600,000₮ - 800,000₮', image: 'https://lh3.googleusercontent.com/d/1IoAQw8BDVtkB4dL3ZC6ek7U6SfKdh_gu' },
   { id: 'villa-3', type: 'house', title: 'Цэвэр Модон Хаус (Тоглоом & Энтертайнмент)', price: '600,000₮ - 800,000₮', image: 'https://lh3.googleusercontent.com/d/1fWwKCW7vLNqrj6QSMm1k2EO9CEtrOT__' },
-  { id: 'room-1', type: 'room', title: 'Стандарт өрөө', price: '180,000₮', image: 'https://lh3.googleusercontent.com/d/1zoXTewURVSFqXbQvarGOUJV046P0J0DU' },
-  { id: 'room-2', type: 'room', title: 'Делюкс өрөө', price: '250,000₮', image: 'https://lh3.googleusercontent.com/d/1mu0C8z2FhG7HJF6vuVEItWV-O2WDkFYa' },
-  { id: 'room-3', type: 'room', title: 'Гэр бүлийн өрөө', price: '320,000₮', image: 'https://lh3.googleusercontent.com/d/1zoXTewURVSFqXbQvarGOUJV046P0J0DU' },
+  { id: 'room-1', type: 'room', title: 'Стандарт', price: '180,000₮', image: 'https://lh3.googleusercontent.com/d/1zoXTewURVSFqXbQvarGOUJV046P0J0DU' },
+  { id: 'room-2', type: 'room', title: 'Делюкс', price: '250,000₮', image: 'https://lh3.googleusercontent.com/d/1mu0C8z2FhG7HJF6vuVEItWV-O2WDkFYa' },
+  { id: 'room-3', type: 'room', title: 'Гэр бүлийн', price: '320,000₮', image: 'https://lh3.googleusercontent.com/d/1zoXTewURVSFqXbQvarGOUJV046P0J0DU' },
 ];
 
 export const pricingConfig: Record<string, { weekday: number; weekend: number }> = {
@@ -264,7 +264,7 @@ export default function Booking() {
       "Захиалагчийн нэр": name,
       "Утасны дугаар": phone,
       "Имэйл хаяг": email,
-      "Төрөл": selectedType === 'house' ? 'Хаус түрээс' : 'Амралт/Ресорт өрөө',
+      "Төрөл": selectedType === 'house' ? 'Хаус түрээс' : 'Амралт/Ресорт',
       "Сонгосон хувилбар": selectedOption?.title || (selectedType === 'house' ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт'),
       "Нийт хоносон": `${priceReport.totalNights} хоног (${checkInStr} - ${checkOutStr})`,
       "Энгийн өдөр (Ням-Пүрэв)": `${priceReport.weekdayNights} хоног (Нэг хоног: ${priceReport.weekdayRate.toLocaleString()}₮)`,
@@ -297,7 +297,7 @@ export default function Booking() {
       `- Утас: ${phone}\n` +
       `- Имэйл: ${email}\n\n` +
       `Захиалгын мэдээлэл:\n` +
-      `- Сонгосон төрөл: ${selectedType === 'house' ? 'Хаус түрээс' : 'Амралтын өрөө'}\n` +
+      `- Сонгосон төрөл: ${selectedType === 'house' ? 'Хаус түрээс' : 'Амралт/Ресорт'}\n` +
       `- Сонголт: ${selectedOption?.title || (selectedType === 'house' ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт')}\n` +
       `- Зочид: Том хүн: ${adults} хүн, Хүүхэд: ${children} хүүхэд\n` +
       `- Хугацаа: ${selectedRange?.from ? format(selectedRange.from, 'yyyy-MM-dd') : ''} - ${selectedRange?.to ? format(selectedRange.to, 'yyyy-MM-dd') : ''} (${priceReport.totalNights} хоног)\n\n` +
@@ -516,7 +516,7 @@ export default function Booking() {
                           <h2 className="text-3xl font-serif font-bold text-brand-teal">Захиалгын төрөл сонгох</h2>
                           <p className="text-brand-teal/60">Та хаус эсвэл амралт/ресортын аль нэгийг сонгоно уу.</p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                           <button 
                             onClick={() => { 
                               setSelectedType('house'); 
@@ -527,26 +527,59 @@ export default function Booking() {
                               }); 
                               setStep(2); 
                             }}
-                            className="group p-8 bg-brand-teal/5 border-2 border-transparent hover:border-brand-teal rounded-3xl transition-all cursor-pointer text-center space-y-6"
+                            className="group bg-white border-2 border-brand-teal/10 hover:border-brand-teal rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer text-left flex flex-col"
                           >
-                            <div className="w-20 h-20 bg-brand-teal text-white rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                              <HomeIcon size={40} />
+                            <div className="h-56 w-full overflow-hidden relative">
+                              <img 
+                                src="https://lh3.googleusercontent.com/d/1hUTtrjo0_w0pbY9Pd5C4HGOYRF6VkyRa" 
+                                alt="Хаус" 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                referrerPolicy="no-referrer"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                              <div className="absolute bottom-4 left-6 flex items-center gap-3">
+                                <span className="p-2.5 bg-brand-teal text-white rounded-xl">
+                                  <HomeIcon size={20} />
+                                </span>
+                                <h3 className="text-xl font-serif font-extrabold text-white uppercase tracking-wider">Хаус түрээс</h3>
+                              </div>
                             </div>
-                            <div className="space-y-2">
-                              <h3 className="text-2xl font-serif font-bold text-brand-teal uppercase font-bold tracking-wider">ХАУС ТҮРЭЭС</h3>
-                              <p className="text-sm text-brand-teal/60 font-medium">25 хүртэлх тооны хамт олон, гэр бүл, найз нөхдөөрөө амрахад тохиромжтой.</p>
+                            <div className="p-6 space-y-4 flex-grow flex flex-col justify-between">
+                              <p className="text-sm text-brand-teal/70 font-medium leading-relaxed">
+                                Иж бүрэн тохижилттой цэвэр модон хаус. 25 хүртэлх тооны хамт олон, гэр бүл, найз нөхдөөрөө амрахад нэн тохиромжтой.
+                              </p>
+                              <div className="text-sm font-bold text-brand-teal flex items-center gap-1 group-hover:text-brand-yellow transition-colors pt-2 border-t border-slate-50">
+                                Захиалга өгөх →
+                              </div>
                             </div>
                           </button>
+
                           <button 
                             onClick={() => { setSelectedType('room'); setSelectedOption(null); }}
-                            className="group p-8 bg-brand-teal/5 border-2 border-transparent hover:border-brand-teal rounded-3xl transition-all cursor-pointer text-center space-y-6"
+                            className="group bg-white border-2 border-brand-teal/10 hover:border-brand-teal rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer text-left flex flex-col"
                           >
-                            <div className="w-20 h-20 bg-brand-teal text-white rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                              <Bed size={40} />
+                            <div className="h-56 w-full overflow-hidden relative">
+                              <img 
+                                src="https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4" 
+                                alt="Амралт / Ресорт" 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                referrerPolicy="no-referrer"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                              <div className="absolute bottom-4 left-6 flex items-center gap-3">
+                                <span className="p-2.5 bg-brand-teal text-white rounded-xl">
+                                  <Bed size={20} />
+                                </span>
+                                <h3 className="text-xl font-serif font-extrabold text-white uppercase tracking-wider">Амралт / Ресорт</h3>
+                              </div>
                             </div>
-                            <div className="space-y-2">
-                              <h3 className="text-2xl font-serif font-bold text-brand-teal uppercase font-bold tracking-wider">АМРАЛТ / РЕСОРТ ӨРӨӨ</h3>
-                              <p className="text-sm text-brand-teal/60 font-medium">Тохилог стандарт болон делюкс өрөөнүүдэд амрахад тохиромжтой.</p>
+                            <div className="p-6 space-y-4 flex-grow flex flex-col justify-between">
+                              <p className="text-sm text-brand-teal/70 font-medium leading-relaxed">
+                                Амтлаг хоол, цэвэр агаар, тав тухтай орчин. Стандарт, делюкс, гэр бүлийн ангиллаар байгалийн сайханд амраарай.
+                              </p>
+                              <div className="text-sm font-bold text-brand-teal flex items-center gap-1 group-hover:text-brand-yellow transition-colors pt-2 border-t border-slate-50">
+                                Захиалга өгөх →
+                              </div>
                             </div>
                           </button>
                         </div>
@@ -556,7 +589,7 @@ export default function Booking() {
                         <div className="flex items-center justify-between">
                           <button onClick={() => setSelectedType(null)} className="text-brand-teal font-bold flex items-center gap-2 hover:underline">← Буцах</button>
                           <h2 className="text-2xl font-serif font-bold text-brand-teal">
-                            {selectedType === 'house' ? 'Та түрээслэх модон хаусаа сонгоно уу' : 'Та захиалах өрөөгөө сонгоно уу'}
+                            {selectedType === 'house' ? 'Та түрээслэх модон хаусаа сонгоно уу' : 'Та амралт/ресортын сонголтоо хийнэ үү'}
                           </h2>
                           <div className="w-20" />
                         </div>
