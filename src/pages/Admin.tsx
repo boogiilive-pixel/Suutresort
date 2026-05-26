@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Lock, LogIn, Calendar, Plus, FileText, Check, X, Search, 
-  Trash2, User, Phone, Mail, DollarSign, RefreshCw, LogOut, AlertTriangle, Edit 
+  Trash2, User, Phone, Mail, DollarSign, RefreshCw, LogOut, AlertTriangle, Edit, Image 
 } from 'lucide-react';
 import { 
   collection, query, orderBy, onSnapshot, doc, 
@@ -83,9 +83,10 @@ export default function Admin() {
   // States for DB data
   const [bookings, setBookings] = useState<any[]>([]);
   const [news, setNews] = useState<any[]>([]);
+  const [gallery, setGallery] = useState<any[]>([]);
 
   // Navigation tabs inside admin
-  const [activeTab, setActiveTab] = useState<'bookings' | 'add-booking' | 'add-news'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'add-booking' | 'add-news' | 'add-gallery'>('bookings');
 
   // Search/Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,6 +101,14 @@ export default function Admin() {
   const [isSubmittingNews, setIsSubmittingNews] = useState(false);
   const [newsSuccessMsg, setNewsSuccessMsg] = useState<string | null>(null);
   const [editingNews, setEditingNews] = useState<any | null>(null);
+
+  // Form states - Gallery
+  const [galleryImage, setGalleryImage] = useState('https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG');
+  const [galleryCategory, setGalleryCategory] = useState('Nature');
+  const [galleryCaption, setGalleryCaption] = useState('');
+  const [isSubmittingGallery, setIsSubmittingGallery] = useState(false);
+  const [gallerySuccessMsg, setGallerySuccessMsg] = useState<string | null>(null);
+  const [editingGallery, setEditingGallery] = useState<any | null>(null);
 
   // Form states - Manual Booking
   const [clientName, setClientName] = useState('');
@@ -171,9 +180,22 @@ export default function Admin() {
       console.error("Error loading news as admin: ", err);
     });
 
+    // Load gallery in real-time
+    const qGallery = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
+    const unsubGallery = onSnapshot(qGallery, (snapshot) => {
+      const list: any[] = [];
+      snapshot.forEach((snap) => {
+        list.push({ id: snap.id, ...snap.data() });
+      });
+      setGallery(list);
+    }, (err) => {
+      console.error("Error loading gallery as admin: ", err);
+    });
+
     return () => {
       unsubBookings();
       unsubNews();
+      unsubGallery();
     };
   }, [user, isAdminBypassed]);
 
@@ -297,6 +319,75 @@ export default function Admin() {
     }
   };
 
+  // Delete gallery item
+  const handleDeleteGallery = async (galleryId: string) => {
+    if (!window.confirm("Та энэ зургийг устгахдаа итгэлтэй байна уу?")) return;
+    try {
+      await deleteDoc(doc(db, 'gallery', galleryId));
+    } catch (err) {
+      console.error("Delete gallery image failed: ", err);
+    }
+  };
+
+  // Edit gallery item handler
+  const handleEditGalleryClick = (item: any) => {
+    setEditingGallery(item);
+    setGalleryImage(item.image || 'https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG');
+    setGalleryCategory(item.category || 'Nature');
+    setGalleryCaption(item.caption || '');
+    // Scroll smoothly to form input area
+    window.scrollTo({ top: 120, behavior: 'smooth' });
+  };
+
+  const handleCancelEditGallery = () => {
+    setEditingGallery(null);
+    setGalleryImage('https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG');
+    setGalleryCategory('Nature');
+    setGalleryCaption('');
+  };
+
+  // Publish / update gallery item
+  const handlePublishGallery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!galleryImage.trim() || !galleryCaption.trim()) {
+      alert("Зургийн холбоос болон тайлбарыг заавал оруулна уу.");
+      return;
+    }
+
+    setIsSubmittingGallery(true);
+    setGallerySuccessMsg(null);
+
+    const payload = {
+      image: galleryImage,
+      category: galleryCategory,
+      caption: galleryCaption,
+    };
+
+    try {
+      if (editingGallery) {
+        await updateDoc(doc(db, 'gallery', editingGallery.id), payload);
+        setGallerySuccessMsg("Зургийн мэдээллийг амжилттай шинэчиллээ!");
+        setEditingGallery(null);
+      } else {
+        await addDoc(collection(db, 'gallery'), {
+          ...payload,
+          createdAt: serverTimestamp()
+        });
+        setGallerySuccessMsg("Шинэ зургийг галерейд амжилттай нэмж нийтэллээ!");
+      }
+
+      // Reset form
+      setGalleryImage('https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG');
+      setGalleryCategory('Nature');
+      setGalleryCaption('');
+    } catch (err: any) {
+      console.error("Gallery saving error:", err);
+      alert("Зураг хадгалахад алдаа гарлаа: " + err.message);
+    } finally {
+      setIsSubmittingGallery(false);
+    }
+  };
+
   // Submit manual booking from admin panel
   const handleAddManualBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -308,37 +399,39 @@ export default function Admin() {
     setIsSubmittingBooking(true);
     setBookingSuccessMsg(null);
 
-    const matchedOption = ADMIN_OPTIONS.find(o => o.id === selectedOptionId);
-    
-    // Auto-calculate total price
-    const dateRangeMock = {
-      from: new Date(checkInDate),
-      to: new Date(checkOutDate)
-    };
-    const report = calculatePriceReport(selectedOptionId, dateRangeMock);
-    const resolvedPrice = manualPrice !== null ? manualPrice : report.totalPrice;
-
-    const payload = {
-      name: clientName,
-      phone: clientPhone,
-      email: clientEmail,
-      optionId: selectedOptionId,
-      optionTitle: matchedOption?.title || 'Цэвэр Модон Хаус',
-      bookingType: matchedOption?.id.includes('villa') ? 'house' : 'room',
-      checkIn: checkInDate,
-      checkOut: checkOutDate,
-      adults: adults,
-      children: childrenCount,
-      weekdayNights: report.weekdayNights,
-      weekendNights: report.weekendNights,
-      totalPrice: resolvedPrice,
-      status: 'confirmed', // Admin manual checkouts default directly to confirmed
-      createdAt: serverTimestamp()
-    };
-
     try {
+      const matchedOption = ADMIN_OPTIONS.find(o => o.id === selectedOptionId);
+      const isHouse = selectedOptionId.includes('villa') || (matchedOption?.type === 'house');
+      
+      // Auto-calculate total price
+      const dateRangeMock = {
+        from: new Date(checkInDate),
+        to: new Date(checkOutDate)
+      };
+      
+      const report = calculatePriceReport(selectedOptionId, dateRangeMock);
+      const resolvedPrice = manualPrice !== null ? manualPrice : report.totalPrice;
+
+      const payload = {
+        name: clientName,
+        phone: clientPhone,
+        email: clientEmail || 'admin@suutresort.com',
+        optionId: selectedOptionId,
+        optionTitle: matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралтын Өрөө'),
+        bookingType: isHouse ? 'house' : 'room',
+        checkIn: checkInDate,
+        checkOut: checkOutDate,
+        adults: adults,
+        children: childrenCount,
+        weekdayNights: report.weekdayNights || 0,
+        weekendNights: report.weekendNights || 0,
+        totalPrice: resolvedPrice,
+        status: 'confirmed', // Admin manual checkouts default directly to confirmed
+        createdAt: serverTimestamp()
+      };
+
       await addDoc(collection(db, 'bookings'), payload);
-      setBookingSuccessMsg(`Захиалгыг амжилттай нэмж, календарт хаалт хийлээ! (${matchedOption?.title})`);
+      setBookingSuccessMsg(`Захиалгыг амжилттай нэмж, календарт хаалт хийлээ! (${matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралтын Өрөө')})`);
       
       // reset forms
       setClientName('');
@@ -483,6 +576,17 @@ export default function Admin() {
             }`}
           >
             <FileText size={16} /> Мэдээ оруулах
+          </button>
+
+          <button
+            onClick={() => setActiveTab('add-gallery')}
+            className={`py-4 px-2 font-bold text-sm transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
+              activeTab === 'add-gallery' 
+                ? 'border-brand-teal text-brand-teal' 
+                : 'border-transparent text-slate-500 hover:text-brand-teal'
+            }`}
+          >
+            <Image size={16} /> Галерей удирдах ({gallery.length})
           </button>
         </div>
       </div>
@@ -896,6 +1000,145 @@ export default function Admin() {
                             onClick={() => handleDeleteNews(item.id)}
                             className="p-1 px-2.5 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 rounded-lg transition-all cursor-pointer"
                             title="Нийтлэл устгах"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'add-gallery' && (
+            <motion.div
+              key="gallery-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+            >
+              {/* Add / Edit form */}
+              <div className="lg:col-span-2 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm space-y-6">
+                <div>
+                  <h2 className="text-2xl font-serif font-bold text-brand-teal">
+                    {editingGallery ? 'Галерейн Зураг Засах' : 'Галерейд Шинэ Зураг Бүртгэх'}
+                  </h2>
+                  <p className="text-slate-500 text-xs">
+                    {editingGallery ? 'Сонгосон зураг болон тайлбарыг засаж шинэчилж байна.' : 'Энд нийтэлсэн гэрэл зургууд вэб хуудасны Зургийн Цомог цэсэнд шууд харагдана.'}
+                  </p>
+                </div>
+
+                {gallerySuccessMsg && (
+                  <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-800 text-xs flex justify-between items-center">
+                    <span>{gallerySuccessMsg}</span>
+                    <button onClick={() => setGallerySuccessMsg(null)} className="text-emerald-500 hover:text-emerald-700">
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                <form onSubmit={handlePublishGallery} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-brand-teal">Ангилал *</label>
+                      <select
+                        value={galleryCategory}
+                        onChange={(e) => setGalleryCategory(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none"
+                      >
+                        <option value="Nature">Байгаль (Nature)</option>
+                        <option value="Rooms">Амралт (Rooms)</option>
+                        <option value="Houses">Хаус (Houses)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-brand-teal">Зургийн холбоос (Image URL) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={galleryImage}
+                        onChange={(e) => setGalleryImage(e.target.value)}
+                        placeholder="https://..."
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-brand-teal">Зургийн тайлбар (Caption) *</label>
+                    <textarea
+                      required
+                      value={galleryCaption}
+                      onChange={(e) => setGalleryCaption(e.target.value)}
+                      rows={4}
+                      placeholder="Зураг томруулан үзэх үед харагдах нарийвчилсан, уран яруу тайлбар мэдээллийг монголоор энд бичнэ үү."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none font-sans"
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingGallery}
+                      className="w-full bg-brand-teal hover:bg-brand-teal/90 text-white p-3.5 rounded-full font-bold text-sm transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                    >
+                      {isSubmittingGallery ? 'Хадгалж байна...' : (editingGallery ? 'Өөрчлөлтийг Шинэчлэх' : 'Зураг нэмж нийтлэх')}
+                    </button>
+                    {editingGallery && (
+                      <button
+                        type="button"
+                        onClick={handleCancelEditGallery}
+                        className="px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-bold text-sm transition-all cursor-pointer"
+                      >
+                        Цуцлах
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+
+              {/* Gallery list overview */}
+              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
+                <h3 className="text-lg font-serif font-bold text-brand-teal">Нийтлэгдсэн зургууд ({gallery.length})</h3>
+                <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto pr-2">
+                  {gallery.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400 text-xs leading-relaxed">
+                      Одоогоор ямар нэг нэмэлт зураг хадгалагдаагүй байна.<br />
+                      <span className="text-slate-400 font-normal">Энд шинэ зураг нэмж нийтэлбэл өөрчлөлт шууд тусах болно.</span>
+                    </div>
+                  ) : (
+                    gallery.map((item) => (
+                      <div key={item.id} className="py-4 flex justify-between gap-4 items-center">
+                        <div className="flex gap-3 items-center min-w-0">
+                          <img 
+                            src={item.image} 
+                            alt={item.caption} 
+                            className="w-12 h-12 rounded-xl object-cover border border-slate-100 shrink-0"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div className="space-y-0.5 text-xs min-w-0">
+                            <span className="bg-brand-teal/10 text-brand-teal font-extrabold px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider block w-max">
+                              {item.category === 'Nature' ? 'Байгаль' : item.category === 'Rooms' ? 'Амралт' : 'Хаус'}
+                            </span>
+                            <p className="font-semibold text-slate-700 leading-normal truncate max-w-[150px]" title={item.caption}>{item.caption}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <button
+                            onClick={() => handleEditGalleryClick(item)}
+                            className="p-1 px-2.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 rounded-lg transition-all cursor-pointer"
+                            title="Зураг засах"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteGallery(item.id)}
+                            className="p-1 px-2.5 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 rounded-lg transition-all cursor-pointer"
+                            title="Зураг устгах"
                           >
                             <Trash2 size={14} />
                           </button>

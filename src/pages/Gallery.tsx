@@ -1,24 +1,22 @@
 import { motion } from 'motion/react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Maximize2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { db } from '@/firebase';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
-const galleryItems = [
-  // Nature
-  { id: 1, category: 'Nature', image: 'https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG' },
-  { id: 2, category: 'Nature', image: 'https://lh3.googleusercontent.com/d/1VPMeteBUV7gEU-Ay-GqdoINLS-gUJW7H' },
-  { id: 3, category: 'Nature', image: 'https://lh3.googleusercontent.com/d/1QyGzIVu5zReIP6TE194liiqltKGztEb9' },
-  // Rooms
-  { id: 4, category: 'Rooms', image: 'https://lh3.googleusercontent.com/d/1mu0C8z2FhG7HJF6vuVEItWV-O2WDkFYa' },
-  { id: 5, category: 'Rooms', image: 'https://lh3.googleusercontent.com/d/1zoXTewURVSFqXbQvarGOUJV046P0J0DU' },
-  // Houses
-  { id: 6, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1IoAQw8BDVtkB4dL3ZC6ek7U6SfKdh_gu' },
-  { id: 7, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1cQEYwq-79GPLXX6QmOyDrrQ_bwX51Z8T' },
-  { id: 8, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1hUTtrjo0_w0pbY9Pd5C4HGOYRF6VkyRa' },
-  { id: 9, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1fWwKCW7vLNqrj6QSMm1k2EO9CEtrOT__' },
-  { id: 10, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1weJpTiCTRZwGq5smajOL4tcOQWj2mqjG' },
-  { id: 11, category: 'Houses', image: 'https://lh3.googleusercontent.com/d/1fWwKCW7vLNqrj6QSMm1k2EO9CEtrOT__' },
+const DEFAULT_GALLERY = [
+  { id: 'g-1', category: 'Nature', caption: 'Суут Резортын үзэсгэлэнт байгаль, уудам уулсын дүр төрх', image: 'https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG' },
+  { id: 'g-2', category: 'Nature', caption: 'Хусан ойн нам гүм, цэнгэг агаарт алхан биеэ журамшуулах замын агшин', image: 'https://lh3.googleusercontent.com/d/1VPMeteBUV7gEU-Ay-GqdoINLS-gUJW7H' },
+  { id: 'g-3', category: 'Nature', caption: 'Ногоон зүлэг, өвөрмөц тохижилт бүхий задгай талбайн хэсэг', image: 'https://lh3.googleusercontent.com/d/1QyGzIVu5zReIP6TE194liiqltKGztEb9' },
+  { id: 'g-4', category: 'Rooms', caption: 'Ая тухтай, орчин үеийн гэр бүлийн дотоод засал чимэглэл бүхий стандарт өрөө', image: 'https://lh3.googleusercontent.com/d/1mu0C8z2FhG7HJF6vuVEItWV-O2WDkFYa' },
+  { id: 'g-5', category: 'Rooms', caption: 'Тав тухыг дээд зэргээр хангасан, толигор өрөөний дулаахан унтлагын хэсэг', image: 'https://lh3.googleusercontent.com/d/1zoXTewURVSFqXbQvarGOUJV046P0J0DU' },
+  { id: 'g-6', category: 'Houses', caption: 'Байгальд орших цэвэр модон тансаг зэрэглэлийн хаусны гаднах болон орчны харагдах байдал', image: 'https://lh3.googleusercontent.com/d/1IoAQw8BDVtkB4dL3ZC6ek7U6SfKdh_gu' },
+  { id: 'g-7', category: 'Houses', caption: 'Хүүхдийн тоглоомын хэсэг болон амрах талбай бүхий гэр бүлд зориулагдсан модон хаус', image: 'https://lh3.googleusercontent.com/d/1cQEYwq-79GPLXX6QmOyDrrQ_bwX51Z8T' },
+  { id: 'g-8', category: 'Houses', caption: 'Хус модны төгөлд байрласан тухлаг, уламжлалт хэв маягийг шингээсэн зуслангийн гэр', image: 'https://lh3.googleusercontent.com/d/1hUTtrjo0_w0pbY9Pd5C4HGOYRF6VkyRa' },
+  { id: 'g-9', category: 'Houses', caption: 'Харуулц хангасан тагттай, цэлгэр цонхтой байгалийн үзэмжит хаусны дүр зураг', image: 'https://lh3.googleusercontent.com/d/1fWwKCW7vLNqrj6QSMm1k2EO9CEtrOT__' },
+  { id: 'g-10', category: 'Houses', caption: 'Үдшийн гэрэлтүүлэгтэй маш тохилог, намуухан амралтын модон сууцнууд', image: 'https://lh3.googleusercontent.com/d/1weJpTiCTRZwGq5smajOL4tcOQWj2mqjG' },
 ];
 
 const categories = ['Бүгд', 'Байгаль', 'Амралт', 'Хаус'];
@@ -28,9 +26,33 @@ export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState<string>(
     (location.state as any)?.category || 'Бүгд'
   );
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [galleryList, setGalleryList] = useState<any[]>(DEFAULT_GALLERY);
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
-  const filteredItems = galleryItems.filter(item => {
+  // Read gallery data from firestore in real-time
+  useEffect(() => {
+    const q = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items: any[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        items.push({
+          id: docSnap.id,
+          image: data.image || '',
+          category: data.category || 'Nature',
+          caption: data.caption || '',
+          createdAt: data.createdAt
+        });
+      });
+      setGalleryList(items.length > 0 ? items : DEFAULT_GALLERY);
+    }, (err) => {
+      console.warn("Gallery listening failed (falling back safely):", err);
+      setGalleryList(DEFAULT_GALLERY);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const filteredItems = galleryList.filter(item => {
     if (activeCategory === 'Бүгд') return true;
     if (activeCategory === 'Байгаль') return item.category === 'Nature';
     if (activeCategory === 'Амралт') return item.category === 'Rooms';
@@ -96,16 +118,16 @@ export default function Gallery() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
                 className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer shadow-lg"
-                onClick={() => setSelectedImage(item.image)}
+                onClick={() => setSelectedItem(item)}
               >
                 <img 
                   src={item.image} 
-                  alt={`Gallery ${item.id}`} 
+                  alt={item.caption || `Gallery ${item.id}`} 
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute inset-0 bg-brand-teal/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand-teal">
+                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand-teal shadow-lg transform scale-90 group-hover:scale-100 transition-all duration-300">
                     <Maximize2 size={24} />
                   </div>
                 </div>
@@ -116,25 +138,55 @@ export default function Gallery() {
       </section>
 
       {/* Lightbox */}
-      {selectedImage && (
+      {selectedItem && (
         <div 
-          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-6 md:p-12"
-          onClick={() => setSelectedImage(null)}
+          className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 md:p-8 cursor-pointer"
+          onClick={() => setSelectedItem(null)}
         >
           <button 
-            className="absolute top-6 right-6 text-white hover:text-brand-yellow transition-colors"
-            onClick={() => setSelectedImage(null)}
+            className="absolute top-6 right-6 text-white/70 hover:text-brand-yellow hover:scale-110 transition-all bg-white/10 p-2.5 rounded-full cursor-pointer z-50 hover:bg-white/20"
+            onClick={() => setSelectedItem(null)}
           >
-            <X size={40} />
+            <X size={28} />
           </button>
-          <motion.img 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            src={selectedImage} 
-            alt="Selected" 
-            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-            referrerPolicy="no-referrer"
-          />
+          
+          <div 
+            className="max-w-4xl w-full flex flex-col items-center justify-center gap-6 relative" 
+            onClick={e => e.stopPropagation()}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 max-h-[70vh] bg-neutral-900 flex items-center justify-center"
+            >
+              <img 
+                src={selectedItem.image} 
+                alt={selectedItem.caption || "Gallery"} 
+                className="max-w-full max-h-[70vh] object-contain rounded-xl"
+                referrerPolicy="no-referrer"
+              />
+            </motion.div>
+
+            {selectedItem.caption && (
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="w-full max-w-2xl bg-slate-900/90 backdrop-blur-md text-white px-6 py-4 rounded-2xl text-center shadow-2xl border border-white/10"
+              >
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-yellow animate-pulse" />
+                  <span className="text-[10px] text-brand-yellow font-bold uppercase tracking-widest">
+                    {selectedItem.category === 'Nature' ? 'Байгаль' : selectedItem.category === 'Rooms' ? 'Амралт' : 'Хаус'}
+                  </span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-yellow animate-pulse" />
+                </div>
+                <p className="font-serif text-sm md:text-base leading-relaxed tracking-wide text-slate-100">
+                  {selectedItem.caption}
+                </p>
+              </motion.div>
+            )}
+          </div>
         </div>
       )}
     </div>

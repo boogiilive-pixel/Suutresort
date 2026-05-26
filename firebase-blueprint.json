@@ -37,6 +37,18 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
       },
       "required": ["title", "content", "createdAt"]
+    },
+    "gallery": {
+      "title": "Gallery",
+      "description": "Gallery images with category and caption",
+      "type": "object",
+      "properties": {
+        "image": { "type": "string", "description": "Image URL" },
+        "category": { "type": "string", "description": "Category of the image (Nature, Rooms, Houses)" },
+        "caption": { "type": "string", "description": "Beautiful caption describing the image" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["image", "category", "caption", "createdAt"]
     }
   },
   "firestore": {
@@ -47,6 +59,10 @@
     "/news/{newsId}": {
       "schema": "news",
       "description": "Collection of news posts and announcements"
+    },
+    "/gallery/{galleryId}": {
+      "schema": "gallery",
+      "description": "Collection of gallery images and captions"
     }
   }
 }

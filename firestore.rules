@@ -34,6 +34,13 @@ service cloud.firestore {
         data.content is string && data.content.size() > 0;
     }
 
+    function isValidGallery(data) {
+      return data.keys().hasAll(['image', 'category', 'caption', 'createdAt']) &&
+        data.image is string && data.image.size() > 0 &&
+        data.category is string && data.category.size() > 0 &&
+        data.caption is string && data.caption.size() > 0;
+    }
+
     // Bookings collection rules
     match /bookings/{bookingId} {
       // Anyone can create a booking to make a reservation, or admins can do it
@@ -53,6 +60,15 @@ service cloud.firestore {
       
       // Only admins can write, update, or delete news posts
       allow create, update, delete: if isAdmin() && isValidNews(request.resource.data);
+    }
+
+    // Gallery collection rules
+    match /gallery/{galleryId} {
+      // Anyone can view gallery images
+      allow read: if true;
+      
+      // Only admins can write, update, or delete gallery posts
+      allow create, update, delete: if isAdmin() && isValidGallery(request.resource.data);
     }
   }
 }
