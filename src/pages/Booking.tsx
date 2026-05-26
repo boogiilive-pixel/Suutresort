@@ -201,33 +201,41 @@ export default function Booking() {
     setError(null);
 
     const path = 'bookings';
-    try {
-      await addDoc(collection(db, path), {
-        name: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        adults: adults,
-        children: children,
-        bookingType: selectedType,
-        optionId: selectedOption?.id || '',
-        optionTitle: selectedOption?.title || (selectedType === 'house' ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт'),
-        checkIn: selectedRange?.from ? format(selectedRange.from, 'yyyy-MM-dd') : '',
-        checkOut: selectedRange?.to ? format(selectedRange.to, 'yyyy-MM-dd') : '',
-        weekdayNights: priceReport.weekdayNights,
-        weekendNights: priceReport.weekendNights,
-        totalPrice: priceReport.totalPrice,
-        status: 'pending',
-        createdAt: serverTimestamp(),
-      });
+    
+    const bookingData = {
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+      adults: adults,
+      children: children,
+      bookingType: selectedType,
+      optionId: selectedOption?.id || '',
+      optionTitle: selectedOption?.title || (selectedType === 'house' ? 'Цэвэр Модон Хаус' : 'Амралт/Ресорт'),
+      checkIn: selectedRange?.from ? format(selectedRange.from, 'yyyy-MM-dd') : '',
+      checkOut: selectedRange?.to ? format(selectedRange.to, 'yyyy-MM-dd') : '',
+      weekdayNights: priceReport.weekdayNights,
+      weekendNights: priceReport.weekendNights,
+      totalPrice: priceReport.totalPrice,
+      status: 'pending',
+      createdAt: serverTimestamp(),
+    };
+
+    // Firebase-ийн хадгалах үйлдлийг ард ажиллуулснаар хэрэглэгчийн интерфейс хүлээхгүй сулрахгүй
+    addDoc(collection(db, path), bookingData).catch((err) => {
+      console.error('Background Booking error:', err);
+      try {
+        handleFirestoreError(err, OperationType.CREATE, path);
+      } catch (e) {
+        // Ignore background reporting errors
+      }
+    });
+
+    // Хэрэглэгчийн вебдээр шууд амжилттай болсон төлөв рүү маш хурдан 150-200ms хугацаанд шилжүүлнэ
+    setTimeout(() => {
       setIsSuccess(true);
-      sendBookingEmail(formData.name, formData.phone, formData.email);
-    } catch (err) {
-      console.error('Booking error:', err);
-      setError('Захиалга хийхэд алдаа гарлаа. Та дахин оролдоно уу.');
-      handleFirestoreError(err, OperationType.CREATE, path);
-    } finally {
       setIsSubmitting(false);
-    }
+      sendBookingEmail(formData.name, formData.phone, formData.email);
+    }, 150);
   };
 
   return (
