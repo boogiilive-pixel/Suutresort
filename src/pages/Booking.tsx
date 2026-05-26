@@ -157,7 +157,15 @@ export default function Booking() {
   const priceReport = calculatePriceReport(selectedOption?.id, selectedRange);
 
   const handleNext = () => setStep(s => s + 1);
-  const handleBack = () => setStep(s => s - 1);
+  const handleBack = () => {
+    if (step === 2 && selectedType === 'house') {
+      setSelectedType(null);
+      setSelectedOption(null);
+      setStep(1);
+    } else {
+      setStep(s => s - 1);
+    }
+  };
 
   const isDateDisabled = (date: Date) => {
     return isBefore(date, startOfToday()) || mockBookedDates.some(bookedDate => isSameDay(bookedDate, date));
@@ -346,7 +354,21 @@ export default function Booking() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <button 
-                            onClick={() => { setSelectedType('house'); setSelectedOption(null); }}
+                            onClick={() => { 
+                              setSelectedType('house'); 
+                              const defaultHouse = options.find(o => o.type === 'house') || {
+                                id: 'villa-1',
+                                type: 'house',
+                                title: 'Цэвэр Модон Хаус',
+                                price: '600,000₮ - 800,000₮',
+                                image: 'https://lh3.googleusercontent.com/d/1hUTtrjo0_w0pbY9Pd5C4HGOYRF6VkyRa'
+                              };
+                              setSelectedOption({
+                                ...defaultHouse,
+                                title: 'Цэвэр Модон Хаус'
+                              }); 
+                              setStep(2); 
+                            }}
                             className="group p-8 bg-brand-teal/5 border-2 border-transparent hover:border-brand-teal rounded-3xl transition-all cursor-pointer text-center space-y-6"
                           >
                             <div className="w-20 h-20 bg-brand-teal text-white rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
