@@ -253,7 +253,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
         
         <div className="max-w-7xl mx-auto pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/50">
-          <p>© {new Date().getFullYear()} SUUT RESORT. Бүх эрх хуулиар хамгаалагдсан. <Link to="/admin" className="hover:text-brand-yellow ml-2 text-white/20 transition-colors uppercase text-[10px] font-bold tracking-wider">Админ</Link></p>
+          <p>© {new Date().getFullYear()} SUUT RESORT. Бүх эрх хуулиар хамгаалагдсан.</p>
           <p>
             <a 
               href="https://cornerstoneai.dev/" 
