@@ -207,7 +207,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
           <div>
             <h4 className="font-serif text-xl font-bold mb-6">Цэс</h4>
-            <ul className="space-y-4 text-sm text-white/70">
+            <ul className="grid grid-cols-2 gap-y-4 gap-x-6 text-sm text-white/70">
               {navItems.map(item => (
                 <li key={item.path}><Link to={item.path} className="hover:text-white transition-colors">{item.name}</Link></li>
               ))}
