@@ -484,10 +484,8 @@ export default function Admin() {
     try {
       const local = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
       if (editingNews) {
-        // Kick off update in background so UI does not wait on slow sandbox server handshakes
-        updateDoc(doc(db, 'news', editingNews.id), payload).catch(err => {
-          console.error("News background update failed:", err);
-        });
+        // Await real Firestore update
+        await updateDoc(doc(db, 'news', editingNews.id), payload);
 
         // Update local storage backup
         let updated = local.map((item: any) => {
@@ -507,18 +505,15 @@ export default function Admin() {
         setNewsSuccessMsg("Мэдээг амжилттай засаж шинэчиллээ!");
         setEditingNews(null);
       } else {
-        const localId = 'local-' + Date.now();
-        // Kick off addition in background so UI does not wait on slow sandbox server handshakes
-        addDoc(collection(db, 'news'), {
+        // Await real Firestore creation to obtain real document ID
+        const docRef = await addDoc(collection(db, 'news'), {
           ...payload,
           createdAt: new Date()
-        }).catch(err => {
-          console.error("News background add failed:", err);
         });
 
-        // Add to local storage backup
+        // Add to local storage backup with the exact Firestore ID
         const newItem = {
-          id: localId,
+          id: docRef.id,
           ...payload,
           createdAt: new Date().toISOString()
         };
@@ -539,7 +534,7 @@ export default function Admin() {
       setNewsAuthor('Админ');
     } catch (err: any) {
       console.error("News saving error:", err);
-      alert("Мэдээ хадгалахад алдаа гарлаа: " + err.message);
+      alert("Мэдээ хадгалахад алдаа гарлаа (Базанд хадгалагдаагүй тул бусад хөтөч засах боломжгүй): " + err.message);
     } finally {
       setIsSubmittingNews(false);
     }
@@ -599,10 +594,8 @@ export default function Admin() {
     try {
       const local = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
       if (editingGallery) {
-        // Kick off update in background so UI does not wait on slow sandbox server handshakes
-        updateDoc(doc(db, 'gallery', editingGallery.id), payload).catch(err => {
-          console.error("Gallery background update failed:", err);
-        });
+        // Await real Firestore update
+        await updateDoc(doc(db, 'gallery', editingGallery.id), payload);
 
         // Update local storage backup
         const updated = local.map((item: any) => {
@@ -614,18 +607,15 @@ export default function Admin() {
         setGallerySuccessMsg("Зургийн мэдээллийг амжилттай шинэчиллээ!");
         setEditingGallery(null);
       } else {
-        const localId = 'local-' + Date.now();
-        // Kick off addition in background so UI does not wait on slow sandbox server handshakes
-        addDoc(collection(db, 'gallery'), {
+        // Await real Firestore creation to obtain real database document ID
+        const docRef = await addDoc(collection(db, 'gallery'), {
           ...payload,
           createdAt: new Date()
-        }).catch(err => {
-          console.error("Gallery background add failed:", err);
         });
 
-        // Add to local storage backup
+        // Add to local storage backup with the exact Firestore ID
         const newItem = {
-          id: localId,
+          id: docRef.id,
           ...payload,
           createdAt: new Date().toISOString()
         };

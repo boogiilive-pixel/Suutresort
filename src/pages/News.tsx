@@ -78,7 +78,7 @@ export default function News() {
       const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
       const parsedLocal = localCustom.map((item: any) => ({
         ...item,
-        createdAt: { toDate: () => safeToDate(item.createdAt) }
+        createdAt: item.createdAt
       }));
       const activeDefaults = DEFAULT_NEWS.filter(def => !deletedDefaults.includes(def.id));
       const mergedNews = [
@@ -101,7 +101,7 @@ export default function News() {
       const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
       const parsedLocal = localCustom.map((item: any) => ({
         ...item,
-        createdAt: { toDate: () => safeToDate(item.createdAt) }
+        createdAt: item.createdAt
       }));
 
       const combined = firestoreItems.map(fItem => {
@@ -139,7 +139,7 @@ export default function News() {
           image: data.image,
           category: data.category || 'Мэдээ',
           author: data.author || 'Админ',
-          createdAt: { toDate: () => safeToDate(data.createdAt) }
+          createdAt: data.createdAt
         });
       });
       loadMerged(items);
