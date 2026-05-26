@@ -268,12 +268,34 @@ export default function Home() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
-  const [latestNews, setLatestNews] = useState<any[]>([]);
+  const [latestNews, setLatestNews] = useState<any[]>(() => {
+    try {
+      const localCustom = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
+      const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
+      const parsedLocal = localCustom.map((item: any) => ({
+        id: item.id,
+        title: item.title || '',
+        excerpt: item.content ? (item.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
+        category: item.category || 'Мэдээ',
+        image: item.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
+        date: safeToDate(item.createdAt).toLocaleDateString('sh-MN', { year: 'numeric', month: '2-digit', day: '2-digit' })
+      }));
+      const activeDefaults = LOCAL_DEFAULT_NEWS.filter(def => !deletedDefaults.includes(def.id));
+      const combined = [
+        ...parsedLocal,
+        ...activeDefaults.filter(def => !parsedLocal.some(cust => cust.title === def.title || cust.id === def.id))
+      ];
+      return combined.length > 0 ? combined.slice(0, 3) : activeDefaults.slice(0, 3);
+    } catch (e) {
+      return LOCAL_DEFAULT_NEWS;
+    }
+  });
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadMergedNews = (firestoreItems: any[] = []) => {
       const localCustom = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
+      const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
       const parsedLocal = localCustom.map((item: any) => ({
         id: item.id,
         title: item.title || '',
@@ -283,7 +305,11 @@ export default function Home() {
         date: safeToDate(item.createdAt).toLocaleDateString('sh-MN', { year: 'numeric', month: '2-digit', day: '2-digit' })
       }));
 
-      const combined = [...firestoreItems];
+      const combined = firestoreItems.map(fItem => {
+        const localMatch = parsedLocal.find(lItem => lItem.id === fItem.id);
+        return localMatch ? { ...fItem, ...localMatch } : fItem;
+      });
+
       parsedLocal.forEach((localItem: any) => {
         const exists = combined.some(item => item.id === localItem.id || item.title === localItem.title);
         if (!exists) {
@@ -291,8 +317,12 @@ export default function Home() {
         }
       });
 
-      const merged = combined.length > 0 ? combined.slice(0, 3) : LOCAL_DEFAULT_NEWS;
-      setLatestNews(merged);
+      const activeDefaults = LOCAL_DEFAULT_NEWS.filter(def => !deletedDefaults.includes(def.id));
+      const merged = [
+        ...combined,
+        ...activeDefaults.filter(def => !combined.some(cust => cust.title === def.title || cust.id === def.id))
+      ];
+      setLatestNews(merged.slice(0, 3));
     };
 
     // Load instantly from localStorage first

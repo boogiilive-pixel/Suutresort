@@ -72,7 +72,24 @@ const DEFAULT_NEWS: NewsItem[] = [
 ];
 
 export default function News() {
-  const [news, setNews] = useState<NewsItem[]>(DEFAULT_NEWS);
+  const [news, setNews] = useState<NewsItem[]>(() => {
+    try {
+      const localCustom = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
+      const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
+      const parsedLocal = localCustom.map((item: any) => ({
+        ...item,
+        createdAt: { toDate: () => safeToDate(item.createdAt) }
+      }));
+      const activeDefaults = DEFAULT_NEWS.filter(def => !deletedDefaults.includes(def.id));
+      const mergedNews = [
+        ...parsedLocal,
+        ...activeDefaults.filter(def => !parsedLocal.some(cust => cust.title === def.title || cust.id === def.id))
+      ];
+      return mergedNews;
+    } catch (e) {
+      return DEFAULT_NEWS;
+    }
+  });
   const [loading, setLoading] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [activeTab, setActiveTab] = useState<string>('Бүгд');
@@ -81,12 +98,17 @@ export default function News() {
   useEffect(() => {
     const loadMerged = (firestoreItems: NewsItem[] = []) => {
       const localCustom = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
+      const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
       const parsedLocal = localCustom.map((item: any) => ({
         ...item,
         createdAt: { toDate: () => safeToDate(item.createdAt) }
       }));
 
-      const combined = [...firestoreItems];
+      const combined = firestoreItems.map(fItem => {
+        const localMatch = parsedLocal.find(lItem => lItem.id === fItem.id);
+        return localMatch ? { ...fItem, ...localMatch } : fItem;
+      });
+
       parsedLocal.forEach((localItem: any) => {
         const exists = combined.some(item => item.id === localItem.id || item.title === localItem.title);
         if (!exists) {
@@ -94,9 +116,10 @@ export default function News() {
         }
       });
 
+      const activeDefaults = DEFAULT_NEWS.filter(def => !deletedDefaults.includes(def.id));
       const mergedNews = [
         ...combined,
-        ...DEFAULT_NEWS.filter(def => !combined.some(cust => cust.title === def.title))
+        ...activeDefaults.filter(def => !combined.some(cust => cust.title === def.title || cust.id === def.id))
       ];
       setNews(mergedNews);
     };

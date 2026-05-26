@@ -107,14 +107,33 @@ export default function Admin() {
 
   const syncNews = () => {
     const local = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
+    const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
+    
+    // Start with Firestore items, mapped with local edits if present
     const combined = firestoreNewsRef.current.map((fItem: any) => {
       const localMatch = local.find((lItem: any) => lItem.id === fItem.id);
       return localMatch ? { ...fItem, ...localMatch } : fItem;
     });
+    
+    // Add local custom news not present in Firestore
     local.forEach((lItem: any) => {
       const exists = combined.some(item => item.id === lItem.id);
       if (!exists) combined.push(lItem);
     });
+
+    // Merge default news if they aren't deleted and not already mapped
+    DEFAULT_NEWS.forEach((defItem: any) => {
+      if (deletedDefaults.includes(defItem.id)) return;
+      
+      const exists = combined.some(item => item.id === defItem.id || item.title === defItem.title);
+      if (!exists) {
+        combined.push({
+          ...defItem,
+          createdAt: { toDate: () => new Date('2026-05-15') } // Wrap in expected format
+        });
+      }
+    });
+
     setNews(combined);
   };
 
@@ -303,12 +322,22 @@ export default function Admin() {
   const handleDeleteNews = async (newsId: string) => {
     if (!window.confirm("Та энэ мэдээг устгахдаа итгэлтэй байна уу?")) return;
     try {
-      await deleteDoc(doc(db, 'news', newsId));
+      await deleteDoc(doc(db, 'news', newsId)).catch(() => {});
       
       // Update local storage backup
       const local = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
       const updated = local.filter((item: any) => item.id !== newsId);
       localStorage.setItem('suut_custom_news', JSON.stringify(updated));
+
+      // If it's a default news item, register it as deleted
+      if (newsId.startsWith('default-')) {
+        const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
+        if (!deletedDefaults.includes(newsId)) {
+          deletedDefaults.push(newsId);
+          localStorage.setItem('suut_deleted_default_news_ids', JSON.stringify(deletedDefaults));
+        }
+      }
+
       syncNews();
     } catch (err) {
       console.error("Delete news failed: ", err);
@@ -365,10 +394,18 @@ export default function Admin() {
         });
 
         // Update local storage backup
-        const updated = local.map((item: any) => {
+        let updated = local.map((item: any) => {
           if (item.id === editingNews.id) return { ...item, ...payload };
           return item;
         });
+        const exists = local.some((item: any) => item.id === editingNews.id);
+        if (!exists) {
+          updated.push({
+            id: editingNews.id,
+            ...payload,
+            createdAt: new Date().toISOString()
+          });
+        }
         localStorage.setItem('suut_custom_news', JSON.stringify(updated));
 
         setNewsSuccessMsg("Мэдээг амжилттай засаж шинэчиллээ!");
