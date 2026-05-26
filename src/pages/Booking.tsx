@@ -217,7 +217,13 @@ export default function Booking() {
 
   const handleNext = () => setStep(s => s + 1);
   const handleBack = () => {
-    setStep(s => s - 1);
+    if (step === 2 && selectedType === 'house') {
+      setSelectedType(null);
+      setSelectedOption(null);
+      setStep(1);
+    } else {
+      setStep(s => s - 1);
+    }
   };
 
   const isDateDisabled = (date: Date) => {
@@ -507,7 +513,12 @@ export default function Booking() {
                           <button 
                             onClick={() => { 
                               setSelectedType('house'); 
-                              setSelectedOption(null); 
+                              const houseOption = options.find(o => o.type === 'house') || options[0];
+                              setSelectedOption({
+                                ...houseOption,
+                                title: 'Цэвэр Модон Хаус'
+                              }); 
+                              setStep(2); 
                             }}
                             className="group p-8 bg-brand-teal/5 border-2 border-transparent hover:border-brand-teal rounded-3xl transition-all cursor-pointer text-center space-y-6"
                           >
