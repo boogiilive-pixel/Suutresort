@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, User, Share2, Copy, Facebook, ArrowLeft, Eye, MessageCircle } from 'lucide-react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase';
 import ReactMarkdown from 'react-markdown';
 import { getDirectDriveUrl, safeToDate, formatLocaleDate } from '@/lib/utils';
@@ -121,16 +121,25 @@ export default function News() {
         ...combined,
         ...activeDefaults.filter(def => !combined.some(cust => cust.title === def.title || cust.id === def.id))
       ];
-      setNews(mergedNews);
+
+      // Robust chronological sorting in-memory
+      const sortedNews = mergedNews.sort((a, b) => {
+        const timeA = safeToDate(a.createdAt).getTime();
+        const timeB = safeToDate(b.createdAt).getTime();
+        return timeB - timeA;
+      });
+
+      setNews(sortedNews);
     };
 
     // Load instantly from localStorage first
     loadMerged([]);
 
-    const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const newsCol = collection(db, 'news');
+
+    const parseSnapshot = (snapshot: any) => {
       const items: NewsItem[] = [];
-      snapshot.forEach((docSnap) => {
+      snapshot.forEach((docSnap: any) => {
         const data = docSnap.data();
         items.push({
           id: docSnap.id,
@@ -142,10 +151,27 @@ export default function News() {
           createdAt: data.createdAt
         });
       });
+      return items;
+    };
+
+    // 1. One-shot fetch fallback for fast, reliable load on Edge and mobile browsers where WebSocket/long-polling is blocked
+    getDocs(newsCol).then((snapshot) => {
+      const items = parseSnapshot(snapshot);
+      if (items.length > 0) {
+        loadMerged(items);
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.warn('News pre-fetching via getDocs failed (will rely on onSnapshot):', err);
+    });
+
+    // 2. Real-time snapshot listening
+    const unsubscribe = onSnapshot(newsCol, (snapshot) => {
+      const items = parseSnapshot(snapshot);
       loadMerged(items);
       setLoading(false);
     }, (err) => {
-      console.warn('News listening failed (falling back to default local data):', err);
+      console.warn('News listening failed, loading from local:', err);
       loadMerged([]);
       setLoading(false);
     });

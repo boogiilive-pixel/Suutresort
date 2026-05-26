@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { cn, safeToDate, formatLocaleDate } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
 
 const highlights = [
   {
@@ -302,6 +302,7 @@ export default function Home() {
         excerpt: item.content ? (item.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
         category: item.category || 'Мэдээ',
         image: item.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
+        createdAt: item.createdAt,
         date: formatLocaleDate(item.createdAt, { year: 'numeric', month: '2-digit', day: '2-digit' })
       }));
 
@@ -322,16 +323,25 @@ export default function Home() {
         ...combined,
         ...activeDefaults.filter(def => !combined.some(cust => cust.title === def.title || cust.id === def.id))
       ];
-      setLatestNews(merged.slice(0, 3));
+
+      // Robust in-memory sorting
+      const sortedNews = merged.sort((a, b) => {
+        const timeA = safeToDate(a.createdAt || a.date).getTime();
+        const timeB = safeToDate(b.createdAt || b.date).getTime();
+        return timeB - timeA;
+      });
+
+      setLatestNews(sortedNews.slice(0, 3));
     };
 
     // Load instantly from localStorage first
     loadMergedNews([]);
 
-    const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'), limit(3));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const newsCol = collection(db, 'news');
+
+    const parseSnapshot = (snapshot: any) => {
       const items: any[] = [];
-      snapshot.forEach((docSnap) => {
+      snapshot.forEach((docSnap: any) => {
         const data = docSnap.data();
         items.push({
           id: docSnap.id,
@@ -339,14 +349,32 @@ export default function Home() {
           excerpt: data.content ? (data.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
           category: data.category || 'Мэдээ',
           image: data.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
+          createdAt: data.createdAt,
           date: formatLocaleDate(data.createdAt, { year: 'numeric', month: '2-digit', day: '2-digit' })
         });
       });
+      return items;
+    };
+
+    // 1. One-shot fetch fallback for fast, reliable load on Edge and mobile browsers where WebSocket/long-polling is blocked
+    getDocs(newsCol).then((snapshot) => {
+      const items = parseSnapshot(snapshot);
+      if (items.length > 0) {
+        loadMergedNews(items);
+      }
+    }).catch((err) => {
+      console.warn('Home news pre-fetching via getDocs failed (will rely on onSnapshot):', err);
+    });
+
+    // 2. Real-time snapshot listening
+    const unsubscribe = onSnapshot(newsCol, (snapshot) => {
+      const items = parseSnapshot(snapshot);
       loadMergedNews(items);
     }, (err) => {
       console.warn("Home news query failed, falling back safely:", err);
       loadMergedNews([]);
     });
+
     return () => unsubscribe();
   }, []);
 
