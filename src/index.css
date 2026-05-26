@@ -46,3 +46,80 @@
   @apply py-20 px-6 md:px-12 lg:px-24;
 }
 
+/* Custom react-day-picker styles to make Available vs Booked super clear */
+
+.rdp {
+  --rdp-color: var(--color-brand-teal) !important;
+  --rdp-accent-color: var(--color-brand-teal) !important;
+}
+
+/* Day cells uniform sizing and roundedness */
+.rdp-day {
+  margin: 2px !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 9999px !important;
+}
+
+/* Available Days (Not disabled, not selected) - Soft Emerald Green Theme */
+.rdp-day:not(.rdp-day_disabled):not(.rdp-day_selected) {
+  background-color: #ecfdf5 !important; /* bg-emerald-50 */
+  color: #065f46 !important; /* text-emerald-800 */
+  border: 1px solid #10b981 !important; /* border-emerald-500 */
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
+
+.rdp-day:not(.rdp-day_disabled):not(.rdp-day_selected):hover {
+  background-color: #10b981 !important; /* bg-emerald-500 */
+  color: #ffffff !important;
+  transform: translateY(-1px) scale(1.05);
+}
+
+/* Booked / Disabled Days (Reserved dates or dates in the past) - Soft Red/Rose Theme with Strikethrough */
+.rdp-day_disabled, .rdp-day[disabled] {
+  background-color: #fef2f2 !important; /* bg-rose-50 */
+  color: #ef4444 !important; /* text-red-500 */
+  border: 1px solid #fca5a5 !important; /* border-red-200 */
+  opacity: 0.85 !important;
+  text-decoration: line-through decoration-red-400 decoration-2 !important;
+  cursor: not-allowed !important;
+}
+
+/* Selected Days (The selected date range) - Core Pine Green Theme */
+.rdp-day_selected, .rdp-day_selected:hover {
+  background-color: #004b49 !important; /* brand-teal dark green */
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border: 1px solid #004b49 !important;
+  opacity: 1 !important;
+}
+
+/* Range Middle styles to keep high contrast text for in-between selected days */
+.rdp-day_range_middle {
+  background-color: rgba(0, 75, 73, 0.15) !important;
+  color: #004b49 !important;
+  font-weight: 700 !important;
+}
+
+/* Calendar Month Navigation Buttons styling (Arrows) - Brand Teal Green Color */
+.rdp-nav_button, .rdp-nav_icon {
+  color: #004b49 !important; /* brand-teal dark green */
+  background: transparent !important;
+  transition: all 0.2s ease !important;
+  border-radius: 9999px !important;
+}
+
+.rdp-nav_button:hover {
+  background-color: rgba(0, 75, 73, 0.1) !important;
+  transform: scale(1.15);
+}
+
+/* SVGs inside nav buttons */
+.rdp-nav_button svg {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  stroke-width: 2.5 !important;
+}
+

@@ -531,10 +531,21 @@ export default function Booking() {
                             }}
                           />
                         </div>
-                        <div className="flex gap-6 text-xs font-medium">
-                          <div className="flex items-center gap-2"><div className="w-3 h-3 bg-brand-teal rounded-full" /> Сонгосон</div>
-                          <div className="flex items-center gap-2"><div className="w-3 h-3 bg-brand-teal/10 rounded-full" /> Боломжтой</div>
-                          <div className="flex items-center gap-2"><div className="w-3 h-3 bg-gray-200 rounded-full" /> Захиалагдсан</div>
+                        <div className="flex gap-4 md:gap-6 text-xs font-bold select-none flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3.5 h-3.5 bg-brand-teal rounded-full border border-brand-teal shrink-0" /> 
+                            <span className="text-slate-800">Сонгосон</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3.5 h-3.5 bg-[#ecfdf5] rounded-full border border-emerald-500 shrink-0" /> 
+                            <span className="text-emerald-800">Боломжтой</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3.5 h-3.5 bg-[#fef2f2] rounded-full border border-red-300 relative overflow-hidden flex items-center justify-center shrink-0">
+                              <div className="absolute w-full h-[1.5px] bg-red-400 rotate-45" />
+                            </div> 
+                            <span className="text-red-500 line-through">Захиалагдсан</span>
+                          </div>
                         </div>
                       </div>
 
