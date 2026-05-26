@@ -653,20 +653,26 @@ export default function Admin() {
       localStorage.setItem('suut_custom_bookings', JSON.stringify(local));
       syncBookings();
 
+      // Clear submitting state instantly BEFORE any synchronous alert is shown
+      isSubmittingBookingsRef.current = false;
+      setIsSubmittingBooking(false);
+
       setBookingSuccessMsg(`Захиалга амжилттай бүртгэгдлээ! (${matchedOption?.title || (isHouse ? 'Цэвэр Модон Хаус' : 'Амралтын Өрөө')})`);
       
-      // reset forms
+      // Reset form inputs immediately
       setClientName('');
       setClientPhone('');
+      setClientEmail('admin@suutresort.com');
       setCheckInDate('');
       setCheckOutDate('');
       setManualPrice(null);
+      setAdults(1);
+      setChildrenCount(0);
 
-      // Brief timeout to let states and localStorage update, then prompt alert and reload the page
+      // Show alert asynchronously to allow React to render the cleared state first
       setTimeout(() => {
         alert("Захиалга амжилттай бүртгэгдлээ!");
-        window.location.reload();
-      }, 500);
+      }, 80);
     } catch (err: any) {
       console.error("Manual booking addition failed: ", err);
       alert("Захиалга бүртгэхэд алдаа гарлаа: " + err.message);
