@@ -9,19 +9,44 @@
         "phone": { "type": "string", "description": "Customer phone number" },
         "email": { "type": "string", "description": "Customer email" },
         "guests": { "type": "integer", "description": "Number of guests" },
-        "optionId": { "type": "string", "description": "ID of the house or room" },
-        "optionTitle": { "type": "string", "description": "Title of the house or room" },
-        "date": { "type": "string", "format": "date", "description": "Booking date" },
+        "adults": { "type": "integer", "description": "Number of adult guests" },
+        "children": { "type": "integer", "description": "Number of child guests" },
+        "bookingType": { "type": "string", "description": "Type: house or room" },
+        "optionId": { "type": "string", "description": "ID of the house or room option" },
+        "optionTitle": { "type": "string", "description": "Title of the house or room option" },
+        "checkIn": { "type": "string", "description": "Check-in date (yyyy-MM-dd)" },
+        "checkOut": { "type": "string", "description": "Check-out date (yyyy-MM-dd)" },
+        "weekdayNights": { "type": "integer", "description": "Number of weekday nights" },
+        "weekendNights": { "type": "integer", "description": "Number of weekend nights" },
+        "totalPrice": { "type": "integer", "description": "Total Calculated Price" },
         "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"], "description": "Booking status" },
         "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
       },
-      "required": ["name", "phone", "email", "guests", "optionId", "date", "status", "createdAt"]
+      "required": ["name", "phone", "email", "bookingType", "optionId", "checkIn", "checkOut", "totalPrice", "status", "createdAt"]
+    },
+    "news": {
+      "title": "News",
+      "description": "News, promotions, and announcements from SUUT Resort",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Title of the news article" },
+        "content": { "type": "string", "description": "Markdown or detail content of the article" },
+        "image": { "type": "string", "description": "Cover image URL" },
+        "category": { "type": "string", "description": "Category: event, promo, update, etc." },
+        "author": { "type": "string", "description": "Author name" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["title", "content", "createdAt"]
     }
   },
   "firestore": {
     "/bookings/{bookingId}": {
       "schema": "booking",
-      "description": "Collection of bookings"
+      "description": "Collection of all bookings"
+    },
+    "/news/{newsId}": {
+      "schema": "news",
+      "description": "Collection of news posts and announcements"
     }
   }
 }

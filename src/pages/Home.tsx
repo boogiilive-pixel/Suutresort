@@ -1,8 +1,10 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, Star, CheckCircle2, MapPin, Users, Home as HomeIcon, Bed, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { ArrowRight, Star, CheckCircle2, MapPin, Users, Home as HomeIcon, Bed, ChevronLeft, ChevronRight, Quote, Calendar, Copy, Facebook } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
+import { db } from '@/firebase';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 
 const highlights = [
   {
@@ -235,10 +237,77 @@ const partners = [
   { name: 'Ваарчны гэр' }
 ];
 
+const LOCAL_DEFAULT_NEWS = [
+  {
+    id: 'default-1',
+    title: 'Зуны Нээлтийн Урамшуулал: Ажлын Өдрүүдэд 20% Хямдарлаа!',
+    excerpt: 'Урин дулаан цаг ирж амралт зугаалгын улирал эхэлж байгаатай холбогдуулан SUUT RESORT... ажлын өдрүүдэд 20% хөнгөлөлт зарлалаа.',
+    category: 'Хямдрал',
+    image: 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
+    date: '2026-05-20'
+  },
+  {
+    id: 'default-2',
+    title: 'Шинэ Спортын Талбай Болон Тоглоомын Хэсэг Нээгдлээ',
+    excerpt: 'Бид амрагч нарынхаа чөлөөт цагийг илүү сонирхолтой, идэвхтэй өнгөрүүлэхэд зориулж шинэ спорт заал, задгай талбай ашиглалтанд орууллаа.',
+    category: 'Мэдээ',
+    image: 'https://lh3.googleusercontent.com/d/1mu0C8z2FhG7HJF6vuVEItWV-O2WDkFYa',
+    date: '2026-05-15'
+  },
+  {
+    id: 'default-3',
+    title: 'Эко Явган Аяллын Шинэ Чиглэлүүд Гаргалаа',
+    excerpt: 'Байгальтайгаа илүү гынзгий холбогдож, хусан ойн замаар алхахыг хүссэн амрагчдадаа зориулан тусгай явган аяллын шинэ 3 чиглэлийг тохижууллаа.',
+    category: 'Эко Аялал',
+    image: 'https://lh3.googleusercontent.com/d/1QyGzIVu5zReIP6TE194liiqltKGztEb9',
+    date: '2026-05-10'
+  }
+];
+
 export default function Home() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+  const [latestNews, setLatestNews] = useState<any[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'), limit(3));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items: any[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        items.push({
+          id: docSnap.id,
+          title: data.title || '',
+          excerpt: data.content ? (data.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
+          category: data.category || 'Мэдээ',
+          image: data.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
+          date: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('sh-MN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : new Date().toLocaleDateString('sh-MN')
+        });
+      });
+      setLatestNews(items.length > 0 ? items : LOCAL_DEFAULT_NEWS);
+    }, (err) => {
+      console.warn("Home news query failed, falling back safely:", err);
+      setLatestNews(LOCAL_DEFAULT_NEWS);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleCopyLink = (itemId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/#/news?id=${itemId}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopiedId(itemId);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
+  };
+
+  const handleFacebookShare = (itemId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = encodeURIComponent(`${window.location.origin}/#/news?id=${itemId}`);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`, '_blank', 'width=600,height=400');
+  };
 
   useEffect(() => {
     if (isPaused) return;
@@ -586,6 +655,95 @@ export default function Home() {
               </Link>
               <div className="absolute inset-0 bg-brand-teal/40 group-hover:bg-brand-teal/60 transition-colors" />
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Latest News & Promotions Section */}
+      <section className="section-padding bg-slate-50 border-y border-slate-100">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+            <span className="text-brand-yellow bg-brand-teal text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Мэдээлэл</span>
+            <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-teal">Сүүлийн үеийн мэдээ, урамшуулал</h2>
+            <p className="text-brand-teal/65">SUUT RESORT-ын эргэн тойронд болж буй шинэ мэдээ болон тусгай хямдралуудтай танилцаарай.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {latestNews.map((item, i) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+                className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-brand-teal/5 flex flex-col group"
+              >
+                {/* Cover Image */}
+                <div className="h-48 overflow-hidden relative">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute top-4 left-4 bg-brand-yellow text-brand-teal font-bold px-3 py-1 rounded-full text-[10px] uppercase">
+                    {item.category}
+                  </div>
+                </div>
+
+                {/* Card details */}
+                <div className="p-6 flex flex-col flex-grow space-y-3">
+                  <span className="text-xs text-brand-teal/50 font-bold flex items-center gap-1.5">
+                    <Calendar size={13} /> {item.date}
+                  </span>
+                  
+                  <h3 className="font-serif font-bold text-lg text-brand-teal line-clamp-2 leading-snug group-hover:text-brand-yellow/90 transition-colors">
+                    {item.title}
+                  </h3>
+
+                  <p className="text-brand-teal/65 text-xs md:text-sm line-clamp-3 leading-relaxed flex-grow">
+                    {item.excerpt}
+                  </p>
+
+                  <div className="pt-4 border-t border-brand-teal/5 flex justify-between items-center bg-transparent">
+                    <Link
+                      to={`/news?id=${item.id}`}
+                      className="text-brand-teal font-bold text-xs group-hover:underline inline-flex items-center gap-1.5"
+                    >
+                      Дэлгэрэнгүй унших <ArrowRight size={14} />
+                    </Link>
+
+                    {/* Quick Share utilities requested by user */}
+                    <div className="flex gap-1">
+                      <button
+                        onClick={(e) => handleCopyLink(item.id, e)}
+                        className="p-1 px-2.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded-lg text-brand-teal transition-all relative text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+                        title="Линк хуулах"
+                      >
+                        <Copy size={12} />
+                        {copiedId === item.id ? 'Хуулагдлаа!' : 'Хуулах'}
+                      </button>
+                      <button
+                        onClick={(e) => handleFacebookShare(item.id, e)}
+                        className="p-1.5 hover:bg-slate-50 border border-slate-100 rounded-lg text-brand-teal transition-colors cursor-pointer"
+                        title="Фэйсбүүк хуваалцах"
+                      >
+                        <Facebook size={12} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link
+              to="/news"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-full font-bold text-sm shadow transition-all active:scale-95 cursor-pointer"
+            >
+              БҮХ МЭДЭЭЛЛИЙГ ҮЗЭХ <ArrowRight size={16} />
+            </Link>
           </div>
         </div>
       </section>

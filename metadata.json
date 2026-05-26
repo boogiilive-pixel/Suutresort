@@ -1,5 +1,6 @@
 {
   "name": "SUUT RESORT",
   "description": "Modern and elegant resort website for SUUT RESORT in Mongolia. Experience nature-inspired comfort.",
-  "requestFramePermissions": ["geolocation"]
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

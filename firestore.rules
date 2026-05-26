@@ -1,58 +1,58 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ===============================================================
-    // Assumed Data Model
-    // ===============================================================
-    //
-    // Collection: bookings
-    // Document ID: auto-generated
-    // Fields:
-    //   - name: string (required, 2-100 chars)
-    //   - phone: string (required, 8-15 chars)
-    //   - email: string (required, valid format)
-    //   - guests: number (required, 1-20)
-    //   - optionId: string (required)
-    //   - optionTitle: string (required)
-    //   - date: string (required, ISO 8601)
-    //   - status: string (required, ['pending', 'confirmed', 'cancelled'])
-    //   - createdAt: timestamp (required)
-    //
-    // ===============================================================
+    
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
 
-    // Helper Functions
+    // Helper functions
     function isAuthenticated() {
       return request.auth != null;
     }
 
     function isAdmin() {
       return isAuthenticated() && 
-        (request.auth.token.email == "boogiilive@gmail.com" && request.auth.token.email_verified == true);
-    }
-
-    function isValidEmail(email) {
-      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+        (request.auth.token.email == "boogiilive@gmail.com");
     }
 
     function isValidBooking(data) {
-      return data.keys().hasAll(['name', 'phone', 'email', 'guests', 'optionId', 'optionTitle', 'date', 'status', 'createdAt']) &&
+      return data.keys().hasAll(['name', 'phone', 'email', 'optionId', 'optionTitle', 'checkIn', 'checkOut', 'status', 'createdAt']) &&
         data.name is string && data.name.size() >= 2 && data.name.size() <= 100 &&
-        data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 15 &&
-        isValidEmail(data.email) &&
-        data.guests is number && data.guests >= 1 && data.guests <= 20 &&
+        data.phone is string && data.phone.size() >= 6 && data.phone.size() <= 20 &&
         data.optionId is string &&
         data.optionTitle is string &&
-        data.date is string &&
-        data.status in ['pending', 'confirmed', 'cancelled'] &&
-        data.createdAt is timestamp;
+        data.checkIn is string &&
+        data.checkOut is string &&
+        data.status in ['pending', 'confirmed', 'cancelled', 'completed'];
     }
 
+    function isValidNews(data) {
+      return data.keys().hasAll(['title', 'content', 'createdAt']) &&
+        data.title is string && data.title.size() > 0 &&
+        data.content is string && data.content.size() > 0;
+    }
+
+    // Bookings collection rules
     match /bookings/{bookingId} {
-      // Anyone can create a booking if it's valid
-      allow create: if isValidBooking(request.resource.data);
+      // Anyone can create a booking to make a reservation, or admins can do it
+      allow create: if isValidBooking(request.resource.data) || isAdmin();
       
-      // Only admins can read or update bookings
-      allow read, update, delete: if isAdmin();
+      // Anyone needs to read existing bookings to block dates in the calendar
+      allow read: if true;
+      
+      // Only admins can update or delete bookings
+      allow update, delete: if isAdmin();
+    }
+
+    // News collection rules
+    match /news/{newsId} {
+      // Anyone can view the news posts
+      allow read: if true;
+      
+      // Only admins can write, update, or delete news posts
+      allow create, update, delete: if isAdmin() && isValidNews(request.resource.data);
     }
   }
 }

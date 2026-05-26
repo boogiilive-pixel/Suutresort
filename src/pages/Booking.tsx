@@ -9,7 +9,7 @@ import 'react-day-picker/dist/style.css';
 
 // Firebase imports
 import { db, auth } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 
 // Types
 type BookingType = 'house' | 'room';
@@ -133,15 +133,6 @@ export const calculatePriceReport = (optionId: string | undefined, range: DateRa
   };
 };
 
-// Mock booked dates
-const mockBookedDates = [
-  addDays(new Date(), 2),
-  addDays(new Date(), 3),
-  addDays(new Date(), 7),
-  addDays(new Date(), 8),
-  addDays(new Date(), 9),
-];
-
 export default function Booking() {
   const [step, setStep] = useState(1);
   const [selectedType, setSelectedType] = useState<BookingType | null>(null);
@@ -153,6 +144,43 @@ export default function Booking() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [realBookedDates, setRealBookedDates] = useState<Record<string, Date[]>>({});
+
+  useEffect(() => {
+    const q = collection(db, 'bookings');
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const datesMap: Record<string, Date[]> = {};
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.status !== 'cancelled' && data.checkIn && data.checkOut && data.optionId) {
+          const optId = data.optionId;
+          if (!datesMap[optId]) {
+            datesMap[optId] = [];
+          }
+          try {
+            // parse manual yyyy-MM-dd cleanly in local timezone
+            const [startYear, startMonth, startDay] = data.checkIn.split('-').map(Number);
+            const [endYear, endMonth, endDay] = data.checkOut.split('-').map(Number);
+            
+            const start = new Date(startYear, startMonth - 1, startDay);
+            const end = new Date(endYear, endMonth - 1, endDay);
+            
+            let curr = new Date(start);
+            while (curr < end) {
+              datesMap[optId].push(new Date(curr));
+              curr.setDate(curr.getDate() + 1);
+            }
+          } catch (e) {
+            console.error('Error parsing booking dates:', e);
+          }
+        }
+      });
+      setRealBookedDates(datesMap);
+    }, (err) => {
+      console.error('Snapshot error for bookings:', err);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const priceReport = calculatePriceReport(selectedOption?.id, selectedRange);
 
@@ -168,7 +196,10 @@ export default function Booking() {
   };
 
   const isDateDisabled = (date: Date) => {
-    return isBefore(date, startOfToday()) || mockBookedDates.some(bookedDate => isSameDay(bookedDate, date));
+    if (isBefore(date, startOfToday())) return true;
+    if (!selectedOption) return false;
+    const optionBookings = realBookedDates[selectedOption.id] || [];
+    return optionBookings.some(bookedDate => isSameDay(bookedDate, date));
   };
 
   const sendBookingEmailAuto = async (name: string, phone: string, email: string) => {
