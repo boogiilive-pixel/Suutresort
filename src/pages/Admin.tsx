@@ -222,6 +222,7 @@ export default function Admin() {
   const [manualPrice, setManualPrice] = useState<number | null>(null);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
   const [bookingSuccessMsg, setBookingSuccessMsg] = useState<string | null>(null);
+  const [confirmingBooking, setConfirmingBooking] = useState<any | null>(null);
 
   useEffect(() => {
     // Listen to Auth State
@@ -963,7 +964,7 @@ export default function Admin() {
                               <div className="flex justify-end gap-1.5">
                                 {b.status !== 'confirmed' && (
                                   <button
-                                    onClick={() => handleUpdateStatus(b.id, 'confirmed')}
+                                    onClick={() => setConfirmingBooking(b)}
                                     className="p-1 px-2.5 bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 rounded-md font-bold text-xs transition-all cursor-pointer"
                                     title="Захиалгыг баталгаажуулах"
                                   >
@@ -972,7 +973,11 @@ export default function Admin() {
                                 )}
                                 {b.status !== 'cancelled' && (
                                   <button
-                                    onClick={() => handleUpdateStatus(b.id, 'cancelled')}
+                                    onClick={() => {
+                                      if (window.confirm(`${b.name}-ийн захиалгыг цуцлахдаа итгэлтэй байна уу? Сонгосон өдрүүд календарт чөлөөлөгдөнө.`)) {
+                                        handleUpdateStatus(b.id, 'cancelled');
+                                      }
+                                    }}
                                     className="p-1 px-2.5 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 rounded-md font-bold text-xs transition-all cursor-pointer"
                                     title="Захиалга цуцлах"
                                   >
@@ -1438,6 +1443,135 @@ export default function Admin() {
 
         </AnimatePresence>
       </div>
+
+      {confirmingBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl border border-slate-100 shadow-2xl overflow-hidden w-full max-w-lg"
+          >
+            {/* Modal Header */}
+            <div className="bg-brand-teal text-white px-6 py-5 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Calendar className="text-white shrink-0 animate-pulse" size={20} />
+                <h3 className="text-base font-bold tracking-tight">Захиалгын дэлгэрэнгүй мэдээлэл</h3>
+              </div>
+              <button 
+                onClick={() => setConfirmingBooking(null)}
+                className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4 text-sm text-slate-700 max-h-[75vh] overflow-y-auto">
+              
+              {/* Profile Card */}
+              <div className="bg-slate-50 border border-slate-100/75 rounded-2xl p-4 space-y-3">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Үйлчлүүлэгч</div>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-brand-teal/10 flex items-center justify-center text-brand-teal font-extrabold text-sm shrink-0">
+                    {confirmingBooking.name ? confirmingBooking.name.charAt(0).toUpperCase() : 'У'}
+                  </div>
+                  <div className="space-y-1">
+                    <div className="font-extrabold text-brand-teal text-base leading-tight">{confirmingBooking.name}</div>
+                    <div className="text-slate-500 font-semibold text-xs flex items-center gap-1 mt-0.5">
+                      <Phone size={12} className="text-slate-400" /> {confirmingBooking.phone}
+                    </div>
+                    {confirmingBooking.email && (
+                      <div className="text-slate-500 font-semibold text-xs flex items-center gap-1">
+                        <Mail size={12} className="text-slate-400" /> {confirmingBooking.email}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking Option Info */}
+              <div className="border border-slate-100 rounded-2xl p-4 space-y-3.5">
+                <div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Сонгосон төрөл</div>
+                  <span className="bg-brand-teal/10 text-brand-teal font-extrabold px-3 py-1 rounded-full text-[10px] uppercase tracking-wider">
+                    {confirmingBooking.bookingType === 'house' ? 'Модон Хаус түрээс' : 'Амралтын Өрөө'}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Гарчиг</div>
+                  <div className="font-bold text-slate-800 text-xs md:text-sm leading-relaxed">
+                    {confirmingBooking.optionTitle}
+                  </div>
+                </div>
+              </div>
+
+              {/* Date Information */}
+              <div className="border border-slate-100 rounded-2xl p-4 space-y-3">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Хугацаа (Орох / Гарах)</div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                    <div className="text-[10px] text-slate-400 font-semibold">Орох (Check-In)</div>
+                    <div className="font-extrabold text-slate-800 text-sm mt-1">{confirmingBooking.checkIn}</div>
+                    <div className="text-[9px] text-slate-400 mt-0.5 font-bold">14:00-оос хойш</div>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                    <div className="text-[10px] text-slate-400 font-semibold">Гарах (Check-Out)</div>
+                    <div className="font-extrabold text-slate-800 text-sm mt-1">{confirmingBooking.checkOut}</div>
+                    <div className="text-[9px] text-slate-400 mt-0.5 font-bold">12:00-оос өмнө</div>
+                  </div>
+                </div>
+                <div className="text-xs text-brand-teal font-extrabold bg-brand-teal/5 py-2 px-3 rounded-xl text-center">
+                  Хугацаа: {(confirmingBooking.weekdayNights || 0) + (confirmingBooking.weekendNights || 0)} хоног ({confirmingBooking.weekdayNights || 0} ажлын, {confirmingBooking.weekendNights || 0} амралтын)
+                </div>
+              </div>
+
+              {/* Guest numbers */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="border border-slate-100 p-3 rounded-2xl">
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Том хүний тоо</div>
+                  <div className="text-sm font-bold text-slate-800 mt-1">{confirmingBooking.adults || 1} хүн</div>
+                </div>
+                <div className="border border-slate-100 p-3 rounded-2xl">
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Хүүхдийн тоо</div>
+                  <div className="text-sm font-bold text-slate-800 mt-1">{confirmingBooking.children || 0} хүүхэд</div>
+                </div>
+              </div>
+
+              {/* Total Price & Payment */}
+              <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div className="space-y-0.5">
+                  <span className="text-xs text-slate-500 font-bold block">Нийт бодогдсон үнэ:</span>
+                </div>
+                <div>
+                  <span className="text-lg font-serif font-extrabold text-brand-red">
+                    {confirmingBooking.totalPrice ? `${confirmingBooking.totalPrice.toLocaleString()}₮` : 'Тодорхойгүй'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="bg-slate-50 border-t border-slate-100 px-6 py-4 flex gap-3 justify-end">
+              <button
+                onClick={() => setConfirmingBooking(null)}
+                className="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Хаах
+              </button>
+              <button
+                onClick={async () => {
+                  await handleUpdateStatus(confirmingBooking.id, 'confirmed');
+                  setConfirmingBooking(null);
+                  alert("Захиалга амжилттай баталгаажлаа!");
+                }}
+                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md shadow-green-100 cursor-pointer"
+              >
+                <Check size={14} /> Захиалгыг Баталгаажуулах
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
