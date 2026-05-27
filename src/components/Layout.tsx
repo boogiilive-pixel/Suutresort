@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Phone, Mail, MapPin, Instagram, Facebook, Leaf, MessageCircle } from 'lucide-react';
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/lib/utils';
 
@@ -94,6 +94,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const constraintsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -267,19 +268,28 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
       </footer>
 
-      {/* Messenger FAB */}
-      <a 
+      {/* Messenger drag boundaries container */}
+      <div ref={constraintsRef} className="fixed inset-4 pointer-events-none z-40" />
+
+      {/* Messenger FAB (Draggable) */}
+      <motion.a 
         href="https://m.me/suutresort" 
         target="_blank" 
         rel="noopener noreferrer"
-        className="fixed bottom-8 right-8 z-50 bg-[#0084FF] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center group"
+        drag
+        dragConstraints={constraintsRef}
+        dragElastic={0.05}
+        dragMomentum={false}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-8 right-8 z-50 bg-[#0084FF] text-white p-4 rounded-full shadow-2xl flex items-center justify-center group touch-none cursor-grab active:cursor-grabbing select-none"
         aria-label="Chat on Messenger"
       >
         <MessageCircle size={28} fill="currentColor" />
         <span className="absolute right-full mr-4 bg-white text-brand-teal px-4 py-2 rounded-xl text-sm font-bold shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-brand-teal/5">
           Чатлах
         </span>
-      </a>
+      </motion.a>
     </div>
   );
 }
