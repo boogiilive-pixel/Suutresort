@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, User, Share2, Copy, Facebook, ArrowLeft, Eye, MessageCircle } from 'lucide-react';
-import { collection, onSnapshot, query, orderBy, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, getDocs, doc, setDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
 import ReactMarkdown from 'react-markdown';
 import { getDirectDriveUrl, safeToDate, formatLocaleDate } from '@/lib/utils';
@@ -154,15 +154,73 @@ export default function News() {
       return items;
     };
 
+    const autoSyncToDatabase = async (firestoreItems: NewsItem[]) => {
+      try {
+        const localCustom = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
+        const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
+
+        // 1. If database is completely empty on snapshot fetch, seed the defaults to Firestore
+        if (firestoreItems.length === 0) {
+          console.log("Firestore news collection is empty, seeding default entries...");
+          for (const item of DEFAULT_NEWS) {
+            if (deletedDefaults.includes(item.id)) continue;
+            try {
+              await setDoc(doc(db, 'news', item.id), {
+                title: item.title,
+                content: item.content,
+                category: item.category,
+                image: item.image || '',
+                author: item.author || 'Админ',
+                createdAt: safeToDate(item.createdAt)
+              });
+              console.log(`Seeded default news: ${item.title}`);
+            } catch (err) {
+              console.warn("Seeding default item failed:", item.title, err);
+            }
+          }
+        }
+
+        // 2. Upload any local custom items that are completely missing in Firestore DB
+        const missingInFirestore = localCustom.filter((lItem: any) => {
+          return !firestoreItems.some((fItem) => fItem.id === lItem.id || fItem.title === lItem.title);
+        });
+
+        if (missingInFirestore.length > 0) {
+          console.log(`Syncing ${missingInFirestore.length} locally saved news posts back to cloud database...`);
+          for (const item of missingInFirestore) {
+            try {
+              await setDoc(doc(db, 'news', item.id), {
+                title: item.title,
+                content: item.content,
+                category: item.category,
+                image: item.image || '',
+                author: item.author || 'Админ',
+                createdAt: safeToDate(item.createdAt)
+              });
+              console.log(`Synced missing news article to cloud database successfully: ${item.title}`);
+            } catch (err) {
+              console.warn(`Sync failed for news article: ${item.title}`, err);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Firestore status check/synchronization error:", err);
+      }
+    };
+
     // 1. One-shot fetch fallback for fast, reliable load on Edge and mobile browsers where WebSocket/long-polling is blocked
     getDocs(newsCol).then((snapshot) => {
       const items = parseSnapshot(snapshot);
       if (items.length > 0) {
         loadMerged(items);
         setLoading(false);
+        autoSyncToDatabase(items);
+      } else {
+        autoSyncToDatabase([]);
       }
     }).catch((err) => {
       console.warn('News pre-fetching via getDocs failed (will rely on onSnapshot):', err);
+      autoSyncToDatabase([]);
     });
 
     // 2. Real-time snapshot listening
@@ -170,6 +228,7 @@ export default function News() {
       const items = parseSnapshot(snapshot);
       loadMerged(items);
       setLoading(false);
+      autoSyncToDatabase(items);
     }, (err) => {
       console.warn('News listening failed (will preserve fetched fallback):', err);
       setLoading(false);
