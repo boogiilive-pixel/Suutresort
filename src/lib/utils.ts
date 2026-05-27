@@ -46,6 +46,13 @@ export function safeToDate(val: any): Date {
   if (val.seconds !== undefined && typeof val.seconds === 'number') {
     return new Date(val.seconds * 1000);
   }
+  if (typeof val === 'string') {
+    const cleaned = val.replace(/\./g, '-').replace(/-+$/, '').trim();
+    const parsedCleanup = new Date(cleaned);
+    if (!isNaN(parsedCleanup.getTime())) {
+      return parsedCleanup;
+    }
+  }
   const parsed = new Date(val);
   return isNaN(parsed.getTime()) ? new Date() : parsed;
 }
