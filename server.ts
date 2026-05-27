@@ -4,6 +4,7 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import firebaseConfig from "./firebase-applet-config.json";
 
 const app = express();
 const PORT = 3000;
@@ -13,14 +14,12 @@ app.use(express.json());
 // Initialize Firestore on Backend
 let db: any = null;
 try {
-  const configPath = path.join(process.cwd(), "firebase-applet-config.json");
-  if (fs.existsSync(configPath)) {
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-    const fbApp = initializeApp(config);
-    db = getFirestore(fbApp, config.firestoreDatabaseId || "(default)");
-    console.log("[SUUT Server] Firestore initialized successfully with database id:", config.firestoreDatabaseId || "(default)");
+  if (firebaseConfig && firebaseConfig.apiKey) {
+    const fbApp = initializeApp(firebaseConfig);
+    db = getFirestore(fbApp, firebaseConfig.firestoreDatabaseId || "(default)");
+    console.log("[SUUT Server] Firestore initialized successfully with database id:", firebaseConfig.firestoreDatabaseId || "(default)");
   } else {
-    console.warn("[SUUT Server] firebase-applet-config.json not found. Firestore backend mapping disabled.");
+    console.warn("[SUUT Server] firebase-applet-config.json is empty/invalid. Firestore backend mapping disabled.");
   }
 } catch (err) {
   console.error("[SUUT Server] Failed to initialize Firestore on server:", err);
