@@ -293,7 +293,10 @@ export default function Home() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadMergedNews = (firestoreItems: any[] = []) => {
+    let firestoreNews: any[] = [];
+    let apiNews: any[] = [];
+
+    const mergeAndSortNews = () => {
       const localCustom = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
       const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
       const parsedLocal = localCustom.map((item: any) => ({
@@ -306,7 +309,16 @@ export default function Home() {
         date: formatLocaleDate(item.createdAt, { year: 'numeric', month: '2-digit', day: '2-digit' })
       }));
 
-      const combined = firestoreItems.map(fItem => {
+      // Deduplicate items between Firestore stream and local server API news JSON
+      const allFetched = [...firestoreNews];
+      apiNews.forEach(apiItem => {
+        const exists = allFetched.some(item => item.id === apiItem.id || item.title === apiItem.title);
+        if (!exists) {
+          allFetched.push(apiItem);
+        }
+      });
+
+      const combined = allFetched.map(fItem => {
         const localMatch = parsedLocal.find(lItem => lItem.id === fItem.id);
         return localMatch ? { ...fItem, ...localMatch } : fItem;
       });
@@ -324,7 +336,7 @@ export default function Home() {
         ...activeDefaults.filter(def => !combined.some(cust => cust.title === def.title || cust.id === def.id))
       ];
 
-      // Robust in-memory sorting
+      // Robust chronological sorting in-memory descending
       const sortedNews = merged.sort((a, b) => {
         const timeA = safeToDate(a.createdAt || a.date).getTime();
         const timeB = safeToDate(b.createdAt || b.date).getTime();
@@ -335,7 +347,34 @@ export default function Home() {
     };
 
     // Load instantly from localStorage first
-    loadMergedNews([]);
+    mergeAndSortNews();
+
+    const loadFromApi = async () => {
+      try {
+        const res = await fetch('/api/news');
+        if (res.ok) {
+          const rawItems = await res.json();
+          if (rawItems && rawItems.length > 0) {
+            const mapped = rawItems.map((data: any) => ({
+              id: data.id,
+              title: data.title || '',
+              excerpt: data.content ? (data.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
+              category: data.category || 'Мэдээ',
+              image: data.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
+              createdAt: data.createdAt,
+              date: formatLocaleDate(data.createdAt, { year: 'numeric', month: '2-digit', day: '2-digit' })
+            }));
+            apiNews = mapped;
+            mergeAndSortNews();
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load home news from server api:', err);
+      }
+    };
+
+    // Trigger local API load instantly
+    loadFromApi();
 
     const newsCol = collection(db, 'news');
 
@@ -356,57 +395,18 @@ export default function Home() {
       return items;
     };
 
-    const loadFromApi = async () => {
-      try {
-        const res = await fetch('/api/news');
-        if (res.ok) {
-          const rawItems = await res.json();
-          if (rawItems && rawItems.length > 0) {
-            const mapped = rawItems.map((data: any) => ({
-              id: data.id,
-              title: data.title || '',
-              excerpt: data.content ? (data.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
-              category: data.category || 'Мэдээ',
-              image: data.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
-              createdAt: data.createdAt,
-              date: formatLocaleDate(data.createdAt, { year: 'numeric', month: '2-digit', day: '2-digit' })
-            }));
-            loadMergedNews(mapped);
-            return true;
-          }
-        }
-      } catch (err) {
-        console.warn('Failed to load home news from server api:', err);
-      }
-      return false;
-    };
-
-    // 1. Fetch from our self-contained backend API first
-    loadFromApi().then((success) => {
-      if (success) return;
-
-      // 2. Fallback to One-shot fetch if API wasn't populated
-      getDocs(newsCol).then((snapshot) => {
-        const items = parseSnapshot(snapshot);
-        if (items.length > 0) {
-          loadMergedNews(items);
-        }
-      }).catch((err) => {
-        console.warn('Home news pre-fetching via getDocs failed (will rely on onSnapshot):', err);
-      });
-    });
-
-    // 2. Real-time snapshot listening in background
+    // Real-time Firestore synchronization
     const unsubscribe = onSnapshot(newsCol, (snapshot) => {
       const items = parseSnapshot(snapshot);
-      if (items.length > 0) {
-        loadMergedNews(items);
-      }
+      firestoreNews = items;
+      mergeAndSortNews();
     }, (err) => {
-      console.warn("Home news query failed (will preserve fetched fallback):", err);
+      console.warn('Home Firestore News listening query failed:', err);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const handleCopyLink = (itemId: string, e: React.MouseEvent) => {

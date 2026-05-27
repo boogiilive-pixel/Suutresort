@@ -96,7 +96,10 @@ export default function News() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadMerged = (firestoreItems: NewsItem[] = []) => {
+    let firestoreNews: NewsItem[] = [];
+    let apiNews: NewsItem[] = [];
+
+    const mergeAndSort = () => {
       const localCustom = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
       const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
       const parsedLocal = localCustom.map((item: any) => ({
@@ -104,11 +107,22 @@ export default function News() {
         createdAt: item.createdAt
       }));
 
-      const combined = firestoreItems.map(fItem => {
+      // Deduplicate items fetched via Firestore and Backend Server API
+      const allFetched = [...firestoreNews];
+      apiNews.forEach(apiItem => {
+        const exists = allFetched.some(item => item.id === apiItem.id || item.title === apiItem.title);
+        if (!exists) {
+          allFetched.push(apiItem);
+        }
+      });
+
+      // Map combined fetched items with client local overrides if present
+      const combined = allFetched.map(fItem => {
         const localMatch = parsedLocal.find(lItem => lItem.id === fItem.id);
         return localMatch ? { ...fItem, ...localMatch } : fItem;
       });
 
+      // Append local items completely missing in fetched set (immediate offline preview)
       parsedLocal.forEach((localItem: any) => {
         const exists = combined.some(item => item.id === localItem.id || item.title === localItem.title);
         if (!exists) {
@@ -116,13 +130,14 @@ export default function News() {
         }
       });
 
+      // Add default news items if not deleted and not already in combined
       const activeDefaults = DEFAULT_NEWS.filter(def => !deletedDefaults.includes(def.id));
       const mergedNews = [
         ...combined,
         ...activeDefaults.filter(def => !combined.some(cust => cust.title === def.title || cust.id === def.id))
       ];
 
-      // Robust chronological sorting in-memory
+      // Robust chronological sorting descending
       const sortedNews = mergedNews.sort((a, b) => {
         const timeA = safeToDate(a.createdAt).getTime();
         const timeB = safeToDate(b.createdAt).getTime();
@@ -132,8 +147,26 @@ export default function News() {
       setNews(sortedNews);
     };
 
-    // Load instantly from localStorage first
-    loadMerged([]);
+    // Load instantly from localStorage backup first
+    mergeAndSort();
+
+    const loadFromApi = async () => {
+      try {
+        const res = await fetch('/api/news');
+        if (res.ok) {
+          const items = await res.json();
+          if (items && items.length > 0) {
+            apiNews = items;
+            mergeAndSort();
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load news from backend API:', err);
+      }
+    };
+
+    // Trigger backend API fetch instantly
+    loadFromApi();
 
     const newsCol = collection(db, 'news');
 
@@ -208,56 +241,27 @@ export default function News() {
       }
     };
 
-    const loadFromApi = async () => {
-      try {
-        const res = await fetch('/api/news');
-        if (res.ok) {
-          const items = await res.json();
-          if (items && items.length > 0) {
-            loadMerged(items);
-            setLoading(false);
-            return true;
-          }
-        }
-      } catch (err) {
-        console.warn('Failed to fetch from backend server api:', err);
-      }
-      return false;
-    };
-
-    // 1. Fetch from our self-contained backend API first
-    loadFromApi().then((success) => {
-      if (success) return;
-
-      // 2. Fallback to One-shot fetch if API wasn't populated or returned empty
-      getDocs(newsCol).then((snapshot) => {
-        const items = parseSnapshot(snapshot);
-        if (items.length > 0) {
-          loadMerged(items);
-          setLoading(false);
-          autoSyncToDatabase(items);
-        } else {
-          autoSyncToDatabase([]);
-        }
-      }).catch((err) => {
-        console.warn('News pre-fetching via getDocs failed (will rely on onSnapshot):', err);
-        autoSyncToDatabase([]);
-      });
-    });
-
-    // 2. Real-time snapshot listening in background
+    // Real-time Firestore synchronization
     const unsubscribe = onSnapshot(newsCol, (snapshot) => {
       const items = parseSnapshot(snapshot);
-      if (items.length > 0) {
-        loadMerged(items);
-        setLoading(false);
+      firestoreNews = items;
+      mergeAndSort();
+      setLoading(false);
+      
+      // Seed defaults or sync missing local creations back to Firestore
+      if (items.length === 0) {
+        autoSyncToDatabase([]);
+      } else {
+        autoSyncToDatabase(items);
       }
     }, (err) => {
-      console.warn('News listening failed (will preserve fetched fallback):', err);
+      console.warn('Firestore News listening query failed:', err);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   // Sync URL search params to auto-open specific shared news posts on load

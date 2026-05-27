@@ -75,47 +75,46 @@ export default function Gallery() {
       return items;
     };
 
-    const loadFromApi = async () => {
+    let loadedFromFirestore = false;
+
+    const loadFromApiFallback = async () => {
+      if (loadedFromFirestore) return;
       try {
         const res = await fetch('/api/gallery');
         if (res.ok) {
           const apiImages = await res.json();
-          if (apiImages && apiImages.length > 0) {
+          if (apiImages && apiImages.length > 0 && !loadedFromFirestore) {
+            console.log('Using gallery from local API fallback');
             loadMerged(apiImages);
-            return true;
           }
         }
       } catch (err) {
-        console.warn('Failed to fetch gallery from server API:', err);
+        console.warn('Failed to fetch gallery fallback from server API:', err);
       }
-      return false;
     };
 
-    // 1. Fetch from our self-contained backend API first
-    loadFromApi().then((success) => {
-      if (success) return;
-
-      // 2. Fallback to One-shot fetch if API wasn't populated
-      getDocs(q).then((snapshot) => {
-        const items = parseSnapshot(snapshot);
-        if (items.length > 0) {
-          loadMerged(items);
-        }
-      }).catch((err) => {
-        console.warn('Gallery pre-fetching via getDocs failed (will rely on onSnapshot):', err);
-      });
-    });
-
-    // 2. Real-time snapshot listening in background
+    // 1. Try real-time Firestore synchronization first (instant & caching)
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      loadedFromFirestore = true;
       const items = parseSnapshot(snapshot);
-      if (items.length > 0) {
-        loadMerged(items);
-      }
+      loadMerged(items);
     }, (err) => {
-      console.warn("Gallery listening failed (will preserve fetched fallback):", err);
+      console.warn('Firestore Gallery query failed (trying local API fallback):', err);
+      loadFromApiFallback();
     });
-    return () => unsubscribe();
+
+    // 2. Set an action-grace timer to fall back if Firestore is slow/unresponsive
+    const fbTimer = setTimeout(() => {
+      if (!loadedFromFirestore) {
+        console.log('Firestore took too long to load gallery. Triggering server backend fallback...');
+        loadFromApiFallback();
+      }
+    }, 1200);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(fbTimer);
+    };
   }, []);
 
   const filteredItems = galleryList.filter(item => {

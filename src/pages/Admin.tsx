@@ -92,6 +92,8 @@ export default function Admin() {
   const firestoreBookingsRef = useRef<any[]>([]);
   const firestoreNewsRef = useRef<any[]>([]);
   const firestoreGalleryRef = useRef<any[]>([]);
+  const apiNewsRef = useRef<any[]>([]);
+  const apiGalleryRef = useRef<any[]>([]);
   const isSubmittingBookingsRef = useRef(false);
 
   // Robust sync functions merging local cache and firestore streams
@@ -161,13 +163,24 @@ export default function Admin() {
     const local = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
     const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_news_ids') || '[]');
     
-    // Start with Firestore items, mapped with local edits if present
-    const combined = firestoreNewsRef.current.map((fItem: any) => {
+    // Combine Firestore ref and API ref first
+    const allFetched = [...firestoreNewsRef.current];
+    if (Array.isArray(apiNewsRef.current)) {
+      apiNewsRef.current.forEach((apiItem: any) => {
+        const exists = allFetched.some(item => item.id === apiItem.id || item.title === apiItem.title);
+        if (!exists) {
+          allFetched.push(apiItem);
+        }
+      });
+    }
+
+    // Map combined with local edits if present
+    const combined = allFetched.map((fItem: any) => {
       const localMatch = local.find((lItem: any) => lItem.id === fItem.id);
       return localMatch ? { ...fItem, ...localMatch } : fItem;
     });
     
-    // Add local custom news not present in Firestore
+    // Add local custom news not present in database
     local.forEach((lItem: any) => {
       const exists = combined.some(item => item.id === lItem.id);
       if (!exists) combined.push(lItem);
@@ -191,7 +204,19 @@ export default function Admin() {
 
   const syncGallery = () => {
     const local = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
-    const combined = firestoreGalleryRef.current.map((fItem: any) => {
+    
+    // Combine Firestore ref and API ref
+    const allFetched = [...firestoreGalleryRef.current];
+    if (Array.isArray(apiGalleryRef.current)) {
+      apiGalleryRef.current.forEach((apiItem: any) => {
+        const exists = allFetched.some(item => item.id === apiItem.id || item.image === apiItem.image);
+        if (!exists) {
+          allFetched.push(apiItem);
+        }
+      });
+    }
+
+    const combined = allFetched.map((fItem: any) => {
       const localMatch = local.find((lItem: any) => lItem.id === fItem.id);
       return localMatch ? { ...fItem, ...localMatch } : fItem;
     });
@@ -270,14 +295,14 @@ export default function Admin() {
         if (newsRes && newsRes.ok) {
           const apiNews = await newsRes.json();
           if (apiNews && apiNews.length > 0) {
-            firestoreNewsRef.current = apiNews;
+            apiNewsRef.current = apiNews;
             syncNews();
           }
         }
         if (galleryRes && galleryRes.ok) {
           const apiGallery = await galleryRes.json();
           if (apiGallery && apiGallery.length > 0) {
-            firestoreGalleryRef.current = apiGallery;
+            apiGalleryRef.current = apiGallery;
             syncGallery();
           }
         }
