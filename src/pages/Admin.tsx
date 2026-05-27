@@ -11,7 +11,7 @@ import {
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { db, auth } from '@/firebase';
 import { calculatePriceReport } from './Booking';
-import { getDirectDriveUrl } from '@/lib/utils';
+import { getDirectDriveUrl, safeToDate } from '@/lib/utils';
 
 const DEFAULT_NEWS = [
   {
@@ -300,9 +300,35 @@ export default function Admin() {
           }
         }
       } else {
-        firestoreNewsRef.current = list;
-        syncNews();
+        // Sync custom news stored locally in Chrome which are missing in Cloud DB
+        try {
+          const localCustom = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
+          const missingInFirestore = localCustom.filter((lItem: any) => {
+            return !list.some((fItem) => fItem.id === lItem.id || fItem.title === lItem.title);
+          });
+
+          for (const item of missingInFirestore) {
+            try {
+              await setDoc(doc(db, 'news', item.id), {
+                title: item.title,
+                content: item.content,
+                category: item.category,
+                image: item.image || '',
+                author: item.author || 'Админ',
+                createdAt: safeToDate(item.createdAt)
+              });
+              console.log(`Successfully synced missing custom news article to Firestore: ${item.title}`);
+            } catch (err) {
+              console.warn(`Sync failed for news article: ${item.title}`, err);
+            }
+          }
+        } catch (err) {
+          console.warn("Error checking/uploading missing custom news items:", err);
+        }
       }
+
+      firestoreNewsRef.current = list;
+      syncNews();
     }, (err) => {
       console.error("Error loading news as admin: ", err);
       syncNews();
@@ -310,11 +336,36 @@ export default function Admin() {
 
     // Load gallery in real-time
     const qGallery = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
-    const unsubGallery = onSnapshot(qGallery, (snapshot) => {
+    const unsubGallery = onSnapshot(qGallery, async (snapshot) => {
       const list: any[] = [];
       snapshot.forEach((snap) => {
         list.push({ id: snap.id, ...snap.data() });
       });
+
+      // Sync custom gallery stored locally in Chrome which are missing in Cloud DB
+      try {
+        const localCustom = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
+        const missingInFirestore = localCustom.filter((lItem: any) => {
+          return !list.some((fItem) => fItem.id === lItem.id || fItem.image === lItem.image);
+        });
+
+        for (const item of missingInFirestore) {
+          try {
+            await setDoc(doc(db, 'gallery', item.id), {
+              image: item.image,
+              category: item.category,
+              caption: item.caption,
+              createdAt: safeToDate(item.createdAt)
+            });
+            console.log(`Successfully synced missing custom gallery image to Firestore: ${item.caption}`);
+          } catch (err) {
+            console.warn(`Sync failed for gallery image: ${item.caption}`, err);
+          }
+        }
+      } catch (err) {
+        console.warn("Error checking/uploading missing custom gallery items:", err);
+      }
+
       firestoreGalleryRef.current = list;
       syncGallery();
     }, (err) => {
