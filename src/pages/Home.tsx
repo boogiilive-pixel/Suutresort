@@ -356,20 +356,52 @@ export default function Home() {
       return items;
     };
 
-    // 1. One-shot fetch fallback for fast, reliable load on Edge and mobile browsers where WebSocket/long-polling is blocked
-    getDocs(newsCol).then((snapshot) => {
+    const loadFromApi = async () => {
+      try {
+        const res = await fetch('/api/news');
+        if (res.ok) {
+          const rawItems = await res.json();
+          if (rawItems && rawItems.length > 0) {
+            const mapped = rawItems.map((data: any) => ({
+              id: data.id,
+              title: data.title || '',
+              excerpt: data.content ? (data.content.replace(/[#*`_[\]]/g, '').slice(0, 120) + '...') : '',
+              category: data.category || 'Мэдээ',
+              image: data.image || 'https://lh3.googleusercontent.com/d/1XNwVkLgLtv9jaAbq1qAEBYOjoxx4PHP4',
+              createdAt: data.createdAt,
+              date: formatLocaleDate(data.createdAt, { year: 'numeric', month: '2-digit', day: '2-digit' })
+            }));
+            loadMergedNews(mapped);
+            return true;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load home news from server api:', err);
+      }
+      return false;
+    };
+
+    // 1. Fetch from our self-contained backend API first
+    loadFromApi().then((success) => {
+      if (success) return;
+
+      // 2. Fallback to One-shot fetch if API wasn't populated
+      getDocs(newsCol).then((snapshot) => {
+        const items = parseSnapshot(snapshot);
+        if (items.length > 0) {
+          loadMergedNews(items);
+        }
+      }).catch((err) => {
+        console.warn('Home news pre-fetching via getDocs failed (will rely on onSnapshot):', err);
+      });
+    });
+
+    // 2. Real-time snapshot listening in background
+    const unsubscribe = onSnapshot(newsCol, (snapshot) => {
       const items = parseSnapshot(snapshot);
       if (items.length > 0) {
         loadMergedNews(items);
       }
-    }).catch((err) => {
-      console.warn('Home news pre-fetching via getDocs failed (will rely on onSnapshot):', err);
-    });
-
-    // 2. Real-time snapshot listening
-    const unsubscribe = onSnapshot(newsCol, (snapshot) => {
-      const items = parseSnapshot(snapshot);
-      loadMergedNews(items);
     }, (err) => {
       console.warn("Home news query failed (will preserve fetched fallback):", err);
     });

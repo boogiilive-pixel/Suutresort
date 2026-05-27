@@ -259,22 +259,60 @@ export default function Admin() {
     syncNews();
     syncGallery();
 
-    // Load bookings in real-time
-    // Querying directly without orderBy prevents Firestore from omitting documents that miss the 'createdAt' field.
+    const loadAllFromApi = async () => {
+      try {
+        const [newsRes, galleryRes, bookingsRes] = await Promise.all([
+          fetch('/api/news').catch(() => null),
+          fetch('/api/gallery').catch(() => null),
+          fetch('/api/bookings').catch(() => null)
+        ]);
+
+        if (newsRes && newsRes.ok) {
+          const apiNews = await newsRes.json();
+          if (apiNews && apiNews.length > 0) {
+            firestoreNewsRef.current = apiNews;
+            syncNews();
+          }
+        }
+        if (galleryRes && galleryRes.ok) {
+          const apiGallery = await galleryRes.json();
+          if (apiGallery && apiGallery.length > 0) {
+            firestoreGalleryRef.current = apiGallery;
+            syncGallery();
+          }
+        }
+        if (bookingsRes && bookingsRes.ok) {
+          const apiBookings = await bookingsRes.json();
+          if (apiBookings && apiBookings.length > 0) {
+            firestoreBookingsRef.current = apiBookings;
+            syncBookings();
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load admin lists from local server API:", err);
+      }
+    };
+
+    // Run local API data sync instantly
+    loadAllFromApi();
+
+    // Load bookings in real-time as background fallback
     const qBookings = collection(db, 'bookings');
     const unsubBookings = onSnapshot(qBookings, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach((snap) => {
         list.push({ id: snap.id, ...snap.data() });
       });
-      firestoreBookingsRef.current = list;
-      syncBookings();
+      if (list.length > 0) {
+        firestoreBookingsRef.current = list;
+        syncBookings();
+      }
     }, (err) => {
       console.error("Error loading bookings as admin: ", err);
       syncBookings();
     });
 
-    // Load news in real-time
+    // Load news in real-time as background fallback
     const qNews = query(collection(db, 'news'), orderBy('createdAt', 'desc'));
     const unsubNews = onSnapshot(qNews, async (snapshot) => {
       const list: any[] = [];
@@ -449,7 +487,17 @@ export default function Admin() {
       // Trigger synchrony sync directly
       syncBookings();
 
-      // 3. Try Firestore write in background without blocking UI
+      // 3. Try Server API and fallback to Firestore write in background without blocking UI
+      fetch(`/api/bookings/${bookingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      }).then((res) => {
+        if (res.ok) console.log(`Backend API booking ${bookingId} successfully updated to ${newStatus}`);
+      }).catch((err) => {
+        console.warn("Backend API booking update failed:", err);
+      });
+
       const dRef = doc(db, 'bookings', bookingId);
       updateDoc(dRef, { status: newStatus })
         .then(() => {
@@ -469,7 +517,11 @@ export default function Admin() {
   const handleDeleteNews = async (newsId: string) => {
     if (!window.confirm("Та энэ мэдээг устгахдаа итгэлтэй байна уу?")) return;
     try {
-      await deleteDoc(doc(db, 'news', newsId)).catch(() => {});
+      // Delete on Backend Server API instantly
+      await fetch(`/api/news/${newsId}`, { method: 'DELETE' }).catch((e) => console.warn(e));
+
+      // Asynchronous background firestore deletion
+      deleteDoc(doc(db, 'news', newsId)).catch(() => {});
       
       // Update local storage backup
       const local = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
@@ -535,8 +587,19 @@ export default function Admin() {
     try {
       const local = JSON.parse(localStorage.getItem('suut_custom_news') || '[]');
       if (editingNews) {
-        // Await real Firestore update
-        await updateDoc(doc(db, 'news', editingNews.id), payload);
+        // Save to our Backend API first
+        try {
+          await fetch(`/api/news/${editingNews.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } catch (err) {
+          console.warn("Backend API edit failed, continuing to local backup...", err);
+        }
+
+        // Asynchronous background firestore update fallback
+        updateDoc(doc(db, 'news', editingNews.id), payload).catch(() => {});
 
         // Update local storage backup
         let updated = local.map((item: any) => {
@@ -556,15 +619,33 @@ export default function Admin() {
         setNewsSuccessMsg("Мэдээг амжилттай засаж шинэчиллээ!");
         setEditingNews(null);
       } else {
-        // Await real Firestore creation to obtain real document ID
-        const docRef = await addDoc(collection(db, 'news'), {
+        const generatedId = `news-${Date.now()}`;
+        let finalId = generatedId;
+        
+        // Save to our Backend API first
+        try {
+          const apiRes = await fetch('/api/news', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: generatedId, ...payload })
+          });
+          if (apiRes.ok) {
+            const apiResult = await apiRes.json();
+            if (apiResult && apiResult.id) finalId = apiResult.id;
+          }
+        } catch (err) {
+          console.warn("Backend API create failed, using local generated ID...", err);
+        }
+
+        // Asynchronous background firestore creation with the exact same ID!
+        setDoc(doc(db, 'news', finalId), {
           ...payload,
           createdAt: new Date()
-        });
+        }).catch(() => {});
 
-        // Add to local storage backup with the exact Firestore ID
+        // Add to local storage backup with the exact ID
         const newItem = {
-          id: docRef.id,
+          id: finalId,
           ...payload,
           createdAt: new Date().toISOString()
         };
@@ -595,7 +676,11 @@ export default function Admin() {
   const handleDeleteGallery = async (galleryId: string) => {
     if (!window.confirm("Та энэ зургийг устгахдаа итгэлтэй байна уу?")) return;
     try {
-      await deleteDoc(doc(db, 'gallery', galleryId));
+      // 1. Delete on Backend Server API instantly
+      await fetch(`/api/gallery/${galleryId}`, { method: 'DELETE' }).catch((e) => console.warn(e));
+
+      // 2. Background Firestore fallback deletion
+      deleteDoc(doc(db, 'gallery', galleryId)).catch(() => {});
 
       // Update local storage backup
       const local = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
@@ -645,8 +730,24 @@ export default function Admin() {
     try {
       const local = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
       if (editingGallery) {
-        // Await real Firestore update
-        await updateDoc(doc(db, 'gallery', editingGallery.id), payload);
+        // Save to our Backend API first
+        try {
+          // Note: our simple mockup backend doesn't have a direct gallery PUT, but we can delete + post, or just POST.
+          // Let's make it simple: since we want to edit, we can delete the old one and post-insert.
+          // Or we can just call our backend (or falls back to local storage).
+          // Let's modify local storage backup + server state.
+          await fetch(`/api/gallery/${editingGallery.id}`, { method: 'DELETE' }).catch(() => {});
+          await fetch('/api/gallery', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: editingGallery.id, ...payload })
+          });
+        } catch (err) {
+          console.warn("Backend edit gallery API call failed:", err);
+        }
+
+        // Background Fallback Firestore update
+        updateDoc(doc(db, 'gallery', editingGallery.id), payload).catch(() => {});
 
         // Update local storage backup
         const updated = local.map((item: any) => {
@@ -658,15 +759,33 @@ export default function Admin() {
         setGallerySuccessMsg("Зургийн мэдээллийг амжилттай шинэчиллээ!");
         setEditingGallery(null);
       } else {
-        // Await real Firestore creation to obtain real database document ID
-        const docRef = await addDoc(collection(db, 'gallery'), {
+        const generatedId = `g-${Date.now()}`;
+        let finalId = generatedId;
+
+        // Save to our Backend API first
+        try {
+          const apiRes = await fetch('/api/gallery', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: generatedId, ...payload })
+          });
+          if (apiRes.ok) {
+            const apiResult = await apiRes.json();
+            if (apiResult && apiResult.id) finalId = apiResult.id;
+          }
+        } catch (err) {
+          console.warn("Backend Gallery create API call failed:", err);
+        }
+
+        // Asynchronous background firestore creation with the exact same ID!
+        setDoc(doc(db, 'gallery', finalId), {
           ...payload,
           createdAt: new Date()
-        });
+        }).catch(() => {});
 
-        // Add to local storage backup with the exact Firestore ID
+        // Add to local storage backup with the exact ID
         const newItem = {
-          id: docRef.id,
+          id: finalId,
           ...payload,
           createdAt: new Date().toISOString()
         };

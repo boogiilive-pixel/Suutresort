@@ -358,8 +358,24 @@ export default function Booking() {
       console.warn('Auto email non-fatal error:', ee);
     }
 
-    // Now start Firestore write, with a maximum timeout grace period of 1000ms.
-    // This makes the process lightning fast and 100% immune to slow database handshakes.
+    // POST the booking to our Server API first for instant, robust cross-device sync
+    const backendPostPromise = fetch('/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: fallbackId, ...bookingData, createdAt: nowLocalDate.toISOString() })
+    }).then(async (res) => {
+      if (res.ok) {
+        const result = await res.json();
+        console.log("Booking successfully added to backend server database:", result);
+        return result;
+      }
+      throw new Error(`Server returned status: ${res.status}`);
+    }).catch((err) => {
+      console.warn("Backend API booking submission skipped (local persistence will handle):", err);
+      return null;
+    });
+
+    // Now start Firestore write as background backup with 1000ms race timeout
     const firestoreWritePromise = addDoc(collection(db, path), bookingData)
       .then((docRef) => {
         // Upon success, update the fallback local ID to match Firestore ID
@@ -383,14 +399,11 @@ export default function Booking() {
     const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 1000, 'timeout_fallback'));
 
     try {
-      // Race the writing promise with a 1-second timer
-      const result = await Promise.race([firestoreWritePromise, timeoutPromise]);
-      if (result === 'timeout_fallback') {
-        console.warn("Firestore write is taking longer than 1s, proceeding instantly with localStorage registration!");
-      }
+      // Race the local API booking & Firestore booking with fallback timers
+      await Promise.all([backendPostPromise, Promise.race([firestoreWritePromise, timeoutPromise])]);
       setIsSuccess(true);
     } catch (err: any) {
-      console.warn("Proceeding with localStorage backup due to database error:", err);
+      console.warn("Proceeding with local/backend backup registrations:", err);
       setIsSuccess(true);
     } finally {
       setIsSubmitting(false);

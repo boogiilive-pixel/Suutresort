@@ -208,27 +208,50 @@ export default function News() {
       }
     };
 
-    // 1. One-shot fetch fallback for fast, reliable load on Edge and mobile browsers where WebSocket/long-polling is blocked
-    getDocs(newsCol).then((snapshot) => {
+    const loadFromApi = async () => {
+      try {
+        const res = await fetch('/api/news');
+        if (res.ok) {
+          const items = await res.json();
+          if (items && items.length > 0) {
+            loadMerged(items);
+            setLoading(false);
+            return true;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch from backend server api:', err);
+      }
+      return false;
+    };
+
+    // 1. Fetch from our self-contained backend API first
+    loadFromApi().then((success) => {
+      if (success) return;
+
+      // 2. Fallback to One-shot fetch if API wasn't populated or returned empty
+      getDocs(newsCol).then((snapshot) => {
+        const items = parseSnapshot(snapshot);
+        if (items.length > 0) {
+          loadMerged(items);
+          setLoading(false);
+          autoSyncToDatabase(items);
+        } else {
+          autoSyncToDatabase([]);
+        }
+      }).catch((err) => {
+        console.warn('News pre-fetching via getDocs failed (will rely on onSnapshot):', err);
+        autoSyncToDatabase([]);
+      });
+    });
+
+    // 2. Real-time snapshot listening in background
+    const unsubscribe = onSnapshot(newsCol, (snapshot) => {
       const items = parseSnapshot(snapshot);
       if (items.length > 0) {
         loadMerged(items);
         setLoading(false);
-        autoSyncToDatabase(items);
-      } else {
-        autoSyncToDatabase([]);
       }
-    }).catch((err) => {
-      console.warn('News pre-fetching via getDocs failed (will rely on onSnapshot):', err);
-      autoSyncToDatabase([]);
-    });
-
-    // 2. Real-time snapshot listening
-    const unsubscribe = onSnapshot(newsCol, (snapshot) => {
-      const items = parseSnapshot(snapshot);
-      loadMerged(items);
-      setLoading(false);
-      autoSyncToDatabase(items);
     }, (err) => {
       console.warn('News listening failed (will preserve fetched fallback):', err);
       setLoading(false);

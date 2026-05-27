@@ -75,20 +75,43 @@ export default function Gallery() {
       return items;
     };
 
-    // 1. One-shot fetch fallback for fast, reliable load on Edge and mobile browsers where WebSocket/long-polling is blocked
-    getDocs(q).then((snapshot) => {
+    const loadFromApi = async () => {
+      try {
+        const res = await fetch('/api/gallery');
+        if (res.ok) {
+          const apiImages = await res.json();
+          if (apiImages && apiImages.length > 0) {
+            loadMerged(apiImages);
+            return true;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch gallery from server API:', err);
+      }
+      return false;
+    };
+
+    // 1. Fetch from our self-contained backend API first
+    loadFromApi().then((success) => {
+      if (success) return;
+
+      // 2. Fallback to One-shot fetch if API wasn't populated
+      getDocs(q).then((snapshot) => {
+        const items = parseSnapshot(snapshot);
+        if (items.length > 0) {
+          loadMerged(items);
+        }
+      }).catch((err) => {
+        console.warn('Gallery pre-fetching via getDocs failed (will rely on onSnapshot):', err);
+      });
+    });
+
+    // 2. Real-time snapshot listening in background
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const items = parseSnapshot(snapshot);
       if (items.length > 0) {
         loadMerged(items);
       }
-    }).catch((err) => {
-      console.warn('Gallery pre-fetching via getDocs failed (will rely on onSnapshot):', err);
-    });
-
-    // 2. Real-time snapshot listening
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const items = parseSnapshot(snapshot);
-      loadMerged(items);
     }, (err) => {
       console.warn("Gallery listening failed (will preserve fetched fallback):", err);
     });
