@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, Star, CheckCircle2, MapPin, Users, Home as HomeIcon, Bed, ChevronLeft, ChevronRight, Quote, Calendar, Copy, Facebook } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { cn, safeToDate, formatLocaleDate } from '@/lib/utils';
+import { cn, safeToDate, formatLocaleDate, getDirectDriveUrl } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { collection, query, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
@@ -796,7 +796,7 @@ export default function Home() {
                 {/* Cover Image */}
                 <div className="h-48 overflow-hidden relative">
                   <img
-                    src={item.image}
+                    src={getDirectDriveUrl(item.image)}
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
