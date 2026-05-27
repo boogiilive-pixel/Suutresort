@@ -171,8 +171,7 @@ export default function News() {
       loadMerged(items);
       setLoading(false);
     }, (err) => {
-      console.warn('News listening failed, loading from local:', err);
-      loadMerged([]);
+      console.warn('News listening failed (will preserve fetched fallback):', err);
       setLoading(false);
     });
 

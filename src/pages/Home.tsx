@@ -371,8 +371,7 @@ export default function Home() {
       const items = parseSnapshot(snapshot);
       loadMergedNews(items);
     }, (err) => {
-      console.warn("Home news query failed, falling back safely:", err);
-      loadMergedNews([]);
+      console.warn("Home news query failed (will preserve fetched fallback):", err);
     });
 
     return () => unsubscribe();

@@ -4,7 +4,7 @@ import { X, Maximize2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { cn, getDirectDriveUrl } from '@/lib/utils';
 import { db } from '@/firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, getDocs } from 'firebase/firestore';
 
 const DEFAULT_GALLERY = [
   { id: 'g-1', category: 'Nature', caption: 'Суут Резортын үзэсгэлэнт байгаль, уудам уулсын дүр төрх', image: 'https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG' },
@@ -59,7 +59,8 @@ export default function Gallery() {
     loadMerged([]);
 
     const q = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+
+    const parseSnapshot = (snapshot: any) => {
       const items: any[] = [];
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
@@ -71,10 +72,25 @@ export default function Gallery() {
           createdAt: data.createdAt
         });
       });
+      return items;
+    };
+
+    // 1. One-shot fetch fallback for fast, reliable load on Edge and mobile browsers where WebSocket/long-polling is blocked
+    getDocs(q).then((snapshot) => {
+      const items = parseSnapshot(snapshot);
+      if (items.length > 0) {
+        loadMerged(items);
+      }
+    }).catch((err) => {
+      console.warn('Gallery pre-fetching via getDocs failed (will rely on onSnapshot):', err);
+    });
+
+    // 2. Real-time snapshot listening
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = parseSnapshot(snapshot);
       loadMerged(items);
     }, (err) => {
-      console.warn("Gallery listening failed (falling back safely):", err);
-      loadMerged([]);
+      console.warn("Gallery listening failed (will preserve fetched fallback):", err);
     });
     return () => unsubscribe();
   }, []);
