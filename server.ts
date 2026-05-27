@@ -4,6 +4,9 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 const PORT = 3000;
@@ -13,18 +16,30 @@ app.use(express.json());
 // Initialize Firestore on Backend
 let db: any = null;
 try {
+  let firebaseConfig: any = null;
   const configPath = path.join(process.cwd(), "firebase-applet-config.json");
   if (fs.existsSync(configPath)) {
-    const firebaseConfig = JSON.parse(fs.readFileSync(configPath, "utf8"));
-    if (firebaseConfig && firebaseConfig.apiKey) {
-      const fbApp = initializeApp(firebaseConfig);
-      db = getFirestore(fbApp, firebaseConfig.firestoreDatabaseId || "(default)");
-      console.log("[SUUT Server] Firestore initialized successfully with database id:", firebaseConfig.firestoreDatabaseId || "(default)");
-    } else {
-      console.warn("[SUUT Server] firebase-applet-config.json is empty/invalid. Firestore backend mapping disabled.");
-    }
+    firebaseConfig = JSON.parse(fs.readFileSync(configPath, "utf8"));
   } else {
-    console.warn("[SUUT Server] firebase-applet-config.json does not exist. Firestore backend mapping disabled.");
+    // Attempt loading from Environment variables (Vercel / other hosting)
+    firebaseConfig = {
+      apiKey: process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY,
+      authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID,
+      storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.VITE_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID,
+      measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID || process.env.FIREBASE_MEASUREMENT_ID,
+      firestoreDatabaseId: process.env.VITE_FIREBASE_DATABASE_ID || process.env.FIREBASE_DATABASE_ID
+    };
+  }
+
+  if (firebaseConfig && firebaseConfig.apiKey) {
+    const fbApp = initializeApp(firebaseConfig);
+    db = getFirestore(fbApp, firebaseConfig.firestoreDatabaseId || "(default)");
+    console.log("[SUUT Server] Firestore initialized successfully with database id:", firebaseConfig.firestoreDatabaseId || "(default)");
+  } else {
+    console.warn("[SUUT Server] Firestore backend mapping disabled (no firebase credentials found in file or environment).");
   }
 } catch (err) {
   console.error("[SUUT Server] Failed to initialize Firestore on server:", err);

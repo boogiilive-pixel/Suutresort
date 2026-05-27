@@ -623,8 +623,15 @@ export default function Admin() {
           console.warn("Backend API edit failed, continuing to local backup...", err);
         }
 
-        // Asynchronous background firestore update fallback
-        updateDoc(doc(db, 'news', editingNews.id), payload).catch(() => {});
+        // Firestore update fallback with promise reporting
+        await updateDoc(doc(db, 'news', editingNews.id), payload)
+          .then(() => {
+            console.log("Firestore news successfully updated:", editingNews.id);
+          })
+          .catch((fErr) => {
+            console.error("Firestore news update failed:", fErr);
+            alert("Үүлэн датабааз (Firestore) дээр мэдээ засахад алдаа гарлаа: " + fErr.message);
+          });
 
         // Update local storage backup
         let updated = local.map((item: any) => {
@@ -662,11 +669,18 @@ export default function Admin() {
           console.warn("Backend API create failed, using local generated ID...", err);
         }
 
-        // Asynchronous background firestore creation with the exact same ID!
-        setDoc(doc(db, 'news', finalId), {
+        // Firestore creation with promise reporting!
+        await setDoc(doc(db, 'news', finalId), {
           ...payload,
           createdAt: new Date()
-        }).catch(() => {});
+        })
+          .then(() => {
+            console.log("Firestore news successfully created:", finalId);
+          })
+          .catch((fErr) => {
+            console.error("Firestore news creation failed:", fErr);
+            alert("Үүлэн датабааз (Firestore) дээр мэдээ хадгалахад алдаа гарлаа: " + fErr.message);
+          });
 
         // Add to local storage backup with the exact ID
         const newItem = {
@@ -771,8 +785,15 @@ export default function Admin() {
           console.warn("Backend edit gallery API call failed:", err);
         }
 
-        // Background Fallback Firestore update
-        updateDoc(doc(db, 'gallery', editingGallery.id), payload).catch(() => {});
+        // Fallback Firestore update with promise reporting
+        await updateDoc(doc(db, 'gallery', editingGallery.id), payload)
+          .then(() => {
+            console.log("Firestore gallery successfully updated:", editingGallery.id);
+          })
+          .catch((fErr) => {
+            console.error("Firestore gallery update failed:", fErr);
+            alert("Үүлэн датабааз (Firestore) дээр зургийн мэдээлэл засахад алдаа гарлаа: " + fErr.message);
+          });
 
         // Update local storage backup
         const updated = local.map((item: any) => {
@@ -802,11 +823,18 @@ export default function Admin() {
           console.warn("Backend Gallery create API call failed:", err);
         }
 
-        // Asynchronous background firestore creation with the exact same ID!
-        setDoc(doc(db, 'gallery', finalId), {
+        // Firestore creation with promise reporting!
+        await setDoc(doc(db, 'gallery', finalId), {
           ...payload,
           createdAt: new Date()
-        }).catch(() => {});
+        })
+          .then(() => {
+            console.log("Firestore gallery successfully created:", finalId);
+          })
+          .catch((fErr) => {
+            console.error("Firestore gallery creation failed:", fErr);
+            alert("Үүлэн датабааз (Firestore) дээр зураг хадгалахад алдаа гарлаа: " + fErr.message);
+          });
 
         // Add to local storage backup with the exact ID
         const newItem = {

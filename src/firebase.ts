@@ -1,8 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { initializeFirestore } from 'firebase/firestore';
-const configs = import.meta.glob('../firebase-applet-config.json', { eager: true });
-const fallbackConfig = (Object.values(configs)[0] as any)?.default || {};
+const configs = import.meta.glob('../*.json', { eager: true });
+const fallbackConfig = (configs['../firebase-applet-config.json'] as any)?.default || {};
 
 // Support safe loading from Environment Variables first, falls back to JSON
 const firebaseConfig = {
