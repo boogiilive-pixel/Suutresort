@@ -119,6 +119,11 @@ export default function Admin() {
   const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null);
   const [isChangingPasswordSubmitting, setIsChangingPasswordSubmitting] = useState(false);
 
+  // States for testing FormSubmit booking email notifications
+  const [isTestingEmail, setIsTestingEmail] = useState(false);
+  const [emailTestMessage, setEmailTestMessage] = useState<string | null>(null);
+  const [emailTestError, setEmailTestError] = useState<string | null>(null);
+
   // States for DB data
   const [bookings, setBookings] = useState<any[]>([]);
   const [news, setNews] = useState<any[]>([]);
@@ -728,6 +733,44 @@ export default function Admin() {
     } catch (err: any) {
       console.error("Failed to delete booking: ", err);
       alert("Захиалга устгахад алдаа гарлаа: " + err.message);
+    }
+  };
+
+  // Send test email to boonoogod@gmail.com to trigger/validate FormSubmit activation
+  const handleSendTestEmail = async () => {
+    setIsTestingEmail(true);
+    setEmailTestMessage(null);
+    setEmailTestError(null);
+
+    const testPayload = {
+      _subject: "🔔 СУУТ АМРАЛТ: ИДЭВХЖҮҮЛЭХ ТЕСТ ИМЭЙЛ",
+      _template: "table",
+      "Мэдээлэл": "Энэ бол захиалгын системээс илгээсэн тест имэйл юм.",
+      "Тайлбар": "Хэрэв та анх удаа энэ имэйлийг авч байгаа бол FormSubmit-ээс ирсэн идэвхжүүлэх имэйлийг баталгаажуулна уу.",
+      "Илгээсэн хугацаа": new Date().toLocaleString(),
+      "Шалгалт": "Хэвийн ажиллаж байна."
+    };
+
+    try {
+      const response = await fetch('https://formsubmit.co/ajax/boonoogod@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(testPayload)
+      });
+      const data = await response.json();
+      if (response.ok || data.success === "true" || data.success === true) {
+        setEmailTestMessage("Тест имэйлийг амжилттай тавьлаа! Та boonoogod@gmail.com имэйл хаяг болон спам (Spam/Junk) хавтсаа сайн шалгана уу. Тэнд FormSubmit-ээс ирсэн нэг удаагийн 'Activate Form' идэвхжүүлэх товчийг заавал дарах ёстой шүү!");
+      } else {
+        throw new Error(data.message || "Илгээхэд алдаа гарлаа.");
+      }
+    } catch (err: any) {
+      console.error("Test email dispatch failed:", err);
+      setEmailTestError("Тест имэйл илгээхэд алдаа гарлаа: " + (err.message || err));
+    } finally {
+      setIsTestingEmail(false);
     }
   };
 
@@ -1543,6 +1586,60 @@ export default function Admin() {
                     <option value="cancelled">Цуцлагдсан</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Email configuration helper / Activation trigger */}
+              <div className="bg-amber-50/50 border border-amber-200/60 rounded-2xl p-5 text-xs text-slate-700 space-y-3.5 shadow-xs">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-amber-100 text-amber-700 rounded-xl shrink-0">
+                    <Mail size={16} className="animate-bounce" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-sm text-amber-950 flex items-center gap-2">
+                      Захиалгын мэдэгдэл имэйлийг идэвхжүүлэх болон шалгах
+                    </h4>
+                    <p className="text-slate-600 leading-relaxed text-xs">
+                      Систем дээрх захиалгын мэдээллүүдийг <strong className="text-brand-teal">boonoogod@gmail.com</strong> хаяг руу 
+                      автоматаар илгээхэд <strong>FormSubmit</strong> үйлчилгээ ашигладаг. Анх удаа ашиглахад FormSubmit системээс 
+                      хүлээн авах имэйл рүү <strong>нэг удаагийн баталгаажуулах имэйл (Activation Link)</strong> илгээдэг бөгөөд 
+                      үүнийг спам (Spam/Junk) фолдероо шалгаж олоод <strong>"Activate Form"</strong> товч дээр дарж заавал 
+                      идэвхжүүлсэн байх ёстой. Ингээгүй тохиолдолд захиалга ирэхгүй.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 border-t border-amber-200/40">
+                  <button
+                    type="button"
+                    disabled={isTestingEmail}
+                    onClick={handleSendTestEmail}
+                    className="w-full sm:w-auto px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-slate-300 text-white rounded-xl font-bold transition-all shadow-sm flex items-center justify-center gap-2 hover:shadow active:scale-95 cursor-pointer text-xs"
+                  >
+                    {isTestingEmail ? (
+                      <>Шалгаж байна...</>
+                    ) : (
+                      <>
+                        <RefreshCw size={13} className="animate-spin" style={{ animationDuration: '4s' }} />
+                        Идэвхжүүлэх тест имэйл илгээх
+                      </>
+                    )}
+                  </button>
+                  <p className="text-[11px] text-slate-500 italic">
+                    Дээрх товчийг дарсны дараа boonoogod@gmail.com имэйлээ шалгаарай. Спам хэсэгт орсон байж болно.
+                  </p>
+                </div>
+
+                {emailTestMessage && (
+                  <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-800 font-medium leading-relaxed">
+                    {emailTestMessage}
+                  </div>
+                )}
+
+                {emailTestError && (
+                  <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 font-medium">
+                    {emailTestError}
+                  </div>
+                )}
               </div>
 
               {/* Bookings table */}
