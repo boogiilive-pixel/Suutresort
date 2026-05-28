@@ -113,7 +113,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-screen flex flex-col">
       {/* Navigation */}
       <nav className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 md:px-12",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 md:px-12 print:hidden",
         (isScrolled || isMenuOpen) ? "py-4 bg-white shadow-sm" : "py-6 bg-transparent"
       )}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -190,7 +190,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       </main>
 
       {/* Footer */}
-      <footer className="relative bg-brand-teal text-white pt-20 pb-10 px-6 md:px-12 lg:px-24 overflow-hidden">
+      <footer className="relative bg-brand-teal text-white pt-20 pb-10 px-6 md:px-12 lg:px-24 overflow-hidden print:hidden">
         <FallingLeaves />
         <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="space-y-6">
@@ -282,7 +282,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         dragMomentum={false}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="fixed bottom-8 right-8 z-50 bg-[#0084FF] text-white p-4 rounded-full shadow-2xl flex items-center justify-center group touch-none cursor-grab active:cursor-grabbing select-none"
+        className="fixed bottom-8 right-8 z-50 bg-[#0084FF] text-white p-4 rounded-full shadow-2xl flex items-center justify-center group touch-none cursor-grab active:cursor-grabbing select-none print:hidden"
         aria-label="Chat on Messenger"
       >
         <MessageCircle size={28} fill="currentColor" />
