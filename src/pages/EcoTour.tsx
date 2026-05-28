@@ -285,13 +285,13 @@ export default function EcoTour() {
 
                 {/* Card Footer Button */}
                 <div className="p-6 pt-0 border-t border-brand-teal/5">
-                  <Link 
-                    to="/booking" 
+                  <a 
+                    href="tel:8801-0011" 
                     className="w-full text-center py-3.5 rounded-2xl font-bold bg-brand-teal text-white hover:bg-brand-teal/95 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1.5 group text-sm"
                   >
-                    <span>Аялал захиалах</span>
+                    <span>Холбоо барих</span>
                     <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
-                  </Link>
+                  </a>
                 </div>
               </motion.div>
             ))}
