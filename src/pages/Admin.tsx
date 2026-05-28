@@ -786,7 +786,7 @@ export default function Admin() {
     };
 
     try {
-      const response = await fetch('https://formsubmit.co/ajax/boonoogod@gmail.com', {
+      const response = await fetch('https://formsubmit.co/ajax/info@suutresort.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -796,7 +796,7 @@ export default function Admin() {
       });
       const data = await response.json();
       if (response.ok || data.success === "true" || data.success === true) {
-        setEmailTestMessage("Тест имэйлийг амжилттай тавьлаа! Та boonoogod@gmail.com имэйл хаяг болон спам (Spam/Junk) хавтсаа сайн шалгана уу. Тэнд FormSubmit-ээс ирсэн нэг удаагийн 'Activate Form' идэвхжүүлэх товчийг заавал дарах ёстой шүү!");
+        setEmailTestMessage("Тест имэйлийг амжилттай илгээлээ! Та info@suutresort.com имэйл хаяг болон спам (Spam/Junk) хавтсаа сайн шалгана уу. Тэнд FormSubmit-ээс ирсэн нэг удаагийн 'Activate Form' идэвхжүүлэх товчийг заавал дарах ёстой шүү!");
       } else {
         throw new Error(data.message || "Илгээхэд алдаа гарлаа.");
       }
