@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Lock, LogIn, Calendar, Plus, FileText, Check, X, Search, 
-  Trash2, User, Phone, Mail, DollarSign, RefreshCw, LogOut, AlertTriangle, Edit, Image, HelpCircle 
+  Trash2, User, Phone, Mail, DollarSign, RefreshCw, LogOut, AlertTriangle, Edit, Image, HelpCircle,
+  BarChart3, TrendingUp, TrendingDown, Download, Award
 } from 'lucide-react';
 import { 
   collection, query, orderBy, onSnapshot, doc, 
@@ -305,7 +306,7 @@ export default function Admin() {
   };
 
   // Navigation tabs inside admin
-  const [activeTab, setActiveTab] = useState<'bookings' | 'add-booking' | 'add-news' | 'add-gallery' | 'manage-faqs'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'stats' | 'add-booking' | 'add-news' | 'add-gallery' | 'manage-faqs'>('bookings');
 
   // FAQ management states
   const [faqQuestion, setFaqQuestion] = useState('');
@@ -1382,6 +1383,95 @@ export default function Admin() {
 
   const isAccessAllowed = (user?.email === "boogiilive@gmail.com" || user?.email === "boonoogod@gmail.com") || isAdminBypassed;
 
+  // Statistics calculation engine
+  const stats = React.useMemo(() => {
+    let totalRevenue = 0;
+    let totalBookingsCount = 0;
+    let confirmedCount = 0;
+    let pendingCount = 0;
+    let cancelledCount = 0;
+
+    // Monthly data map
+    const monthlyMap: { [key: string]: { revenue: number; count: number } } = {};
+    // Yearly data map
+    const yearlyMap: { [key: string]: { revenue: number; count: number } } = {};
+    // Type data map
+    const typeMap: { [key: string]: { revenue: number; count: number } } = {
+      house: { revenue: 0, count: 0 },
+      resort: { revenue: 0, count: 0 }
+    };
+
+    bookings.forEach((b) => {
+      const price = Number(b.totalPrice) || 0;
+      
+      totalBookingsCount++;
+      if (b.status === 'confirmed') {
+        confirmedCount++;
+        totalRevenue += price;
+      } else if (b.status === 'pending') {
+        pendingCount++;
+      } else if (b.status === 'cancelled') {
+        cancelledCount++;
+      }
+
+      // Grouping by date (CheckIn: "2026-05-28")
+      if (b.checkIn && b.checkIn.length >= 7) {
+        const year = b.checkIn.substring(0, 4);
+        const month = b.checkIn.substring(0, 7); // "YYYY-MM"
+
+        if (b.status === 'confirmed') {
+          // Monthly
+          if (!monthlyMap[month]) {
+            monthlyMap[month] = { revenue: 0, count: 0 };
+          }
+          monthlyMap[month].revenue += price;
+          monthlyMap[month].count += 1;
+
+          // Yearly
+          if (!yearlyMap[year]) {
+            yearlyMap[year] = { revenue: 0, count: 0 };
+          }
+          yearlyMap[year].revenue += price;
+          yearlyMap[year].count += 1;
+
+          // Type
+          const typeKey = b.bookingType === 'house' ? 'house' : 'resort';
+          typeMap[typeKey].revenue += price;
+          typeMap[typeKey].count += 1;
+        }
+      }
+    });
+
+    // Format monthly data for sorting & charting
+    const monthlyList = Object.keys(monthlyMap).map((m) => ({
+      month: m, // "2026-05"
+      label: m.substring(5, 7) + " сар",
+      year: m.substring(0, 4) + " он",
+      revenue: monthlyMap[m].revenue,
+      count: monthlyMap[m].count
+    })).sort((a, b) => a.month.localeCompare(b.month));
+
+    // Format yearly data
+    const yearlyList = Object.keys(yearlyMap).map((y) => ({
+      year: y,
+      label: y + " он",
+      revenue: yearlyMap[y].revenue,
+      count: yearlyMap[y].count
+    })).sort((a, b) => a.year.localeCompare(b.year));
+
+    return {
+      totalRevenue,
+      totalBookingsCount,
+      confirmedCount,
+      pendingCount,
+      cancelledCount,
+      monthlyList,
+      yearlyList,
+      typeMap,
+      averageRevenue: confirmedCount > 0 ? Math.round(totalRevenue / confirmedCount) : 0
+    };
+  }, [bookings]);
+
   // Filter & search bookings
   const filteredBookings = bookings.filter((b) => {
     const matchesSearch = 
@@ -1461,7 +1551,8 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-16">
+    <>
+      <div className="min-h-screen bg-slate-50 pb-16 print:hidden">
       {/* Admin header */}
       <div className="bg-brand-teal text-white pt-28 pb-10 px-6 md:px-12 border-b border-white/5">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -1501,6 +1592,17 @@ export default function Admin() {
             }`}
           >
             <Calendar size={16} /> Захиалгууд ({bookings.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('stats')}
+            className={`py-4 px-2 font-bold text-sm transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
+              activeTab === 'stats' 
+                ? 'border-brand-teal text-brand-teal' 
+                : 'border-transparent text-slate-500 hover:text-brand-teal'
+            }`}
+          >
+            <BarChart3 size={16} /> Статистик & Тайлан
           </button>
           
           <button
@@ -1740,6 +1842,325 @@ export default function Admin() {
                                   <Trash2 size={13} />
                                 </button>
                               </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB 1.5: STATISTICS & ANALYTICS DASHBOARD */}
+          {activeTab === 'stats' && (
+            <motion.div
+              key="stats-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="space-y-8"
+            >
+              {/* Stats Header Controls */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <div>
+                  <h2 className="text-xl font-serif font-bold text-slate-800">Борлуулалт & Статистик мэдээлэл</h2>
+                  <p className="text-slate-500 text-xs mt-1">Нийт захиалгын мэдээлэл болон санхүүгийн үзүүлэлтүүдийг хянах хэсэг</p>
+                </div>
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-2 bg-brand-teal hover:bg-brand-teal/90 text-white font-bold py-2.5 px-5 rounded-xl transition-all shadow-md hover:shadow active:scale-95 cursor-pointer text-xs shrink-0"
+                >
+                  <Download size={14} /> Захиалгын тайлан (PDF) татах
+                </button>
+              </div>
+
+              {/* KPI Summary Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                {/* KPI Item 1: Total Revenue */}
+                <div className="bg-gradient-to-br from-emerald-50 to-white p-6 rounded-3xl border border-emerald-100 shadow-xs relative overflow-hidden group">
+                  <div className="absolute right-3 top-3 p-2 bg-emerald-100/60 rounded-xl text-emerald-800 transition-transform group-hover:scale-110">
+                    <DollarSign size={18} />
+                  </div>
+                  <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Нийт баталгаажсан орлого</span>
+                  <span className="text-xl md:text-2xl font-black text-slate-800 tracking-tight block mt-2 text-emerald-950 font-serif">
+                    {stats.totalRevenue.toLocaleString()}₮
+                  </span>
+                  <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-bold mt-2">
+                    <TrendingUp size={12} /> Баталгаажсан захиалгуудын дүн
+                  </div>
+                </div>
+
+                {/* KPI Item 2: Average Ticket Size */}
+                <div className="bg-gradient-to-br from-teal-50 to-white p-6 rounded-3xl border border-teal-100 shadow-xs relative overflow-hidden group">
+                  <div className="absolute right-3 top-3 p-2 bg-teal-100/60 rounded-xl text-brand-teal transition-transform group-hover:scale-110">
+                    <Award size={18} />
+                  </div>
+                  <span className="text-[11px] font-bold text-teal-800 uppercase tracking-wider block">Дундаж захиалгын дүн</span>
+                  <span className="text-xl md:text-2xl font-black text-slate-800 tracking-tight block mt-2 text-teal-950 font-serif">
+                    {stats.averageRevenue.toLocaleString()}₮
+                  </span>
+                  <div className="flex items-center gap-1 text-[10px] text-brand-teal font-bold mt-2">
+                    Нэгж захиалгын дундаж үнэлгээ
+                  </div>
+                </div>
+
+                {/* KPI Item 3: Total Count Breakdown */}
+                <div className="bg-gradient-to-br from-amber-50 to-white p-6 rounded-3xl border border-amber-100 shadow-xs relative overflow-hidden group">
+                  <div className="absolute right-3 top-3 p-2 bg-amber-100/60 rounded-xl text-amber-700 transition-transform group-hover:scale-110">
+                    <Calendar size={18} />
+                  </div>
+                  <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">Захиалгуудын төлөв</span>
+                  <span className="text-xl md:text-2xl font-black text-slate-800 tracking-tight block mt-2 text-amber-950 font-serif">
+                    {stats.confirmedCount} <span className="text-xs text-slate-400 font-sans font-normal">батлагдсан</span>
+                  </span>
+                  <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold mt-2">
+                    <span className="text-amber-600">● {stats.pendingCount} хүлээгдэж буй</span>
+                    <span className="text-red-500">● {stats.cancelledCount} цуцалсан</span>
+                  </div>
+                </div>
+
+                {/* KPI Item 4: Total Bookings count */}
+                <div className="bg-gradient-to-br from-slate-50/70 to-white p-6 rounded-3xl border border-slate-100 shadow-xs relative overflow-hidden group">
+                  <div className="absolute right-3 top-3 p-2 bg-slate-100 rounded-xl text-slate-600 transition-transform group-hover:scale-110">
+                    <BarChart3 size={18} />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block font-sans">Нийт захиалгын тоо</span>
+                  <span className="text-xl md:text-2xl font-black text-slate-800 tracking-tight block mt-2 font-serif">
+                    {stats.totalBookingsCount} <span className="text-xs text-slate-400 font-sans font-normal">утга</span>
+                  </span>
+                  <div className="flex items-center gap-1 text-[10px] text-slate-500 font-bold mt-2">
+                    Систем дэх нийт захиалгын мөрүүд
+                  </div>
+                </div>
+              </div>
+
+              {/* Statistical Visualizations Charts */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                {/* Column 1: Monthly Revenue Bar Chart (SVG) */}
+                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-8 flex flex-col space-y-4">
+                  <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <h3 className="font-serif font-bold text-slate-800 text-sm">Сарын борлуулалт, ашиг орлогын тренд</h3>
+                    <span className="text-[10px] font-bold bg-brand-teal/10 text-brand-teal px-3 py-1 rounded-full uppercase">Баталгаажсан</span>
+                  </div>
+
+                  {stats.monthlyList.length === 0 ? (
+                    <div className="h-[240px] flex items-center justify-center text-slate-400 font-semibold text-xs text-center">
+                      Баталгаажсан захиалга байхгүй тул график харуулах боломжгүй байна.
+                    </div>
+                  ) : (
+                    <div className="w-full overflow-x-auto select-none pt-4">
+                      {/* Responsive Width SVG Container */}
+                      <svg 
+                        viewBox={`0 0 ${Math.max(450, 60 + stats.monthlyList.length * 75)} 250`} 
+                        className="w-full h-[240px] font-sans"
+                      >
+                        {/* Define Gradients */}
+                        <defs>
+                          <linearGradient id="barTeal" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10b981" />
+                            <stop offset="100%" stopColor="#0d9488" />
+                          </linearGradient>
+                        </defs>
+
+                        {/* Chart Grid Lines */}
+                        <line x1="50" y1="30" x2="600" y2="30" stroke="#f1f5f9" strokeWidth="1" />
+                        <line x1="50" y1="80" x2="600" y2="80" stroke="#f1f5f9" strokeWidth="1" />
+                        <line x1="50" y1="130" x2="600" y2="130" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="3 3" />
+                        <line x1="50" y1="180" x2="600" y2="180" stroke="#e2e8f0" strokeWidth="1" />
+
+                        {/* Render Bar Columns */}
+                        {(() => {
+                          const maxRevenueVal = Math.max(...stats.monthlyList.map(m => m.revenue), 1000000);
+                          return stats.monthlyList.map((item, idx) => {
+                            const barHeight = (item.revenue / maxRevenueVal) * 140;
+                            const x = 70 + idx * 75;
+                            const y = 180 - barHeight;
+
+                            return (
+                              <g key={item.month} className="group cursor-pointer">
+                                <rect
+                                  x={x}
+                                  y={y}
+                                  width="34"
+                                  height={Math.max(barHeight, 2)}
+                                  rx="5"
+                                  fill="url(#barTeal)"
+                                  className="transition-all duration-300 hover:opacity-85"
+                                />
+                                <text
+                                  x={x + 17}
+                                  y="198"
+                                  textAnchor="middle"
+                                  className="fill-slate-600 font-extrabold text-[10px]"
+                                >
+                                  {item.label}
+                                </text>
+                                <text
+                                  x={x + 17}
+                                  y="212"
+                                  textAnchor="middle"
+                                  className="fill-slate-400 text-[8px]"
+                                >
+                                  {item.year}
+                                </text>
+                                <text
+                                  x={x + 17}
+                                  y={y - 8}
+                                  textAnchor="middle"
+                                  className="fill-slate-700 font-black text-[9px] opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  {`${Math.round(item.revenue / 1000).toLocaleString()}к`}
+                                </text>
+                                <text
+                                  x={x + 17}
+                                  y={Math.max(y + 16, 175)}
+                                  textAnchor="middle"
+                                  className="fill-white font-bold text-[8px]"
+                                  style={{ pointerEvents: 'none' }}
+                                >
+                                  {item.count}
+                                </text>
+                              </g>
+                            );
+                          });
+                        })()}
+                        {/* Y-axis annotations */}
+                        <text x="40" y="34" textAnchor="end" className="fill-slate-400 text-[9px] font-bold">Их</text>
+                        <text x="40" y="105" textAnchor="end" className="fill-slate-400 text-[9px] font-medium">Дундаж</text>
+                        <text x="40" y="184" textAnchor="end" className="fill-slate-400 text-[9px] font-bold">0₮</text>
+                      </svg>
+                    </div>
+                  )}
+                  <p className="text-[10px] text-slate-400 italic mt-auto pt-2 border-t border-slate-50">
+                    * Багануудын орой дээр харагдаж буй тоо нь тухайн сард баталгаажсан нийт захиалгын тоо болно. Дээгүүр нь хулганаа чирэхэд нийт үнийн дүн дэлгэрэнгүй харагдана.
+                  </p>
+                </div>
+
+                {/* Column 2: Booking Type proportions (House vs Resort Room) */}
+                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-4 flex flex-col space-y-5">
+                  <div className="border-b border-slate-100 pb-3">
+                    <h3 className="font-serif font-bold text-slate-800 text-sm">Байршлын төрлөөр авах эрэлт</h3>
+                    <p className="text-slate-400 text-[10px] mt-1">Түрээслэгдсэн хаус болон амралтын өрөөний хэмжээ</p>
+                  </div>
+
+                  <div className="flex-1 flex flex-col justify-center space-y-6">
+                    {/* Proportion calculation */}
+                    {(() => {
+                      const houseRev = stats.typeMap.house?.revenue || 0;
+                      const resortRev = stats.typeMap.resort?.revenue || 0;
+                      const totalTypeRev = houseRev + resortRev || 1;
+                      
+                      const housePct = Math.round((houseRev / totalTypeRev) * 100);
+                      const resortPct = Math.round((resortRev / totalTypeRev) * 100);
+
+                      const houseCount = stats.typeMap.house?.count || 0;
+                      const resortCount = stats.typeMap.resort?.count || 0;
+
+                      return (
+                        <>
+                          {/* Visual Progress Pie-bar Layout */}
+                          <div className="relative h-6 bg-slate-100 rounded-full overflow-hidden flex shadow-inner">
+                            <div 
+                              style={{ width: `${housePct === 0 && resortPct === 0 ? 50 : housePct}%` }}
+                              className="bg-brand-teal h-full transition-all duration-500 relative group flex items-center justify-center font-bold text-white text-[10px]"
+                              title={`Хаус түрээс: ${housePct}%`}
+                            >
+                              {housePct > 15 && `${housePct}%`}
+                            </div>
+                            <div 
+                              style={{ width: `${housePct === 0 && resortPct === 0 ? 50 : resortPct}%` }}
+                              className="bg-amber-500 h-full transition-all duration-500 relative group flex items-center justify-center font-bold text-white text-[10px]"
+                              title={`Амралт/Ресорт: ${resortPct}%`}
+                            >
+                              {resortPct > 15 && `${resortPct}%`}
+                            </div>
+                          </div>
+
+                          {/* Legend / Info Cards */}
+                          <div className="space-y-4">
+                            {/* Proportions Card 1: House */}
+                            <div className="flex justify-between items-center p-3 bg-teal-50/40 rounded-2xl border border-teal-100/50">
+                              <div className="flex items-center gap-2.5">
+                                <span className="w-3 h-3 rounded-full bg-brand-teal shrink-0"></span>
+                                <div className="space-y-0.5">
+                                  <span className="font-bold text-slate-800 text-xs block">Цэвэр модон хаусууд</span>
+                                  <span className="text-[10px] text-slate-400 block">{houseCount} захиалга батлагдсан</span>
+                                </div>
+                              </div>
+                              <span className="font-bold text-slate-800 text-xs">
+                                {houseRev.toLocaleString()}₮
+                              </span>
+                            </div>
+
+                            {/* Proportions Card 2: Resort */}
+                            <div className="flex justify-between items-center p-3 bg-amber-50/40 rounded-2xl border border-amber-100/50">
+                              <div className="flex items-center gap-2.5">
+                                <span className="w-3 h-3 rounded-full bg-amber-500 shrink-0"></span>
+                                <div className="space-y-0.5">
+                                  <span className="font-bold text-slate-800 text-xs block">Амралт / Ресорт өрөө хамрах</span>
+                                  <span className="text-[10px] text-slate-400 block">{resortCount} захиалга батлагдсан</span>
+                                </div>
+                              </div>
+                              <span className="font-bold text-slate-800 text-xs">
+                                {resortRev.toLocaleString()}₮
+                              </span>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Monthly breakdown table */}
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-slate-100">
+                  <h3 className="font-serif font-bold text-slate-800 text-sm">Сараар ангилсан орлогын нарийвчилсан бүртгэл</h3>
+                  <p className="text-slate-400 text-[10px] mt-1">Огнооны дарааллаар баталгаажсан захиалгын нийлбэр дүн</p>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                        <th className="p-4 pl-6">Баталгаажсан он, сар</th>
+                        <th className="p-4 text-center">Захиалгын хэмжээ</th>
+                        <th className="p-4 text-emerald-800">Борлуулалтын нийт төлбөр</th>
+                        <th className="p-4 text-slate-400">Дундаж захиалгын үнэ</th>
+                        <th className="p-4 text-right pr-6">Байдал</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-xs">
+                      {stats.monthlyList.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-slate-400 font-semibold">
+                            Баталгаажсан захиалга байхгүй тул орлогын түүх харуулах боломжгүй.
+                          </td>
+                        </tr>
+                      ) : (
+                        stats.monthlyList.map((m) => (
+                          <tr key={m.month} className="hover:bg-slate-50/70 transition-colors">
+                            <td className="p-4 pl-6 font-bold text-slate-800">
+                              {m.year} • {m.label}
+                            </td>
+                            <td className="p-4 text-center font-bold text-slate-700">
+                              {m.count} ш захиалга
+                            </td>
+                            <td className="p-4 font-black text-emerald-700 text-sm">
+                              {m.revenue.toLocaleString()}₮
+                            </td>
+                            <td className="p-4 font-bold text-slate-500">
+                              {(m.count > 0 ? Math.round(m.revenue / m.count) : 0).toLocaleString()}₮
+                            </td>
+                            <td className="p-4 text-right pr-6">
+                              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-[10px] border border-emerald-100">
+                                <Check size={11} /> Идэвхтэй байна
+                              </span>
                             </td>
                           </tr>
                         ))
@@ -2553,5 +2974,177 @@ export default function Admin() {
         </div>
       )}
     </div>
+
+    {/* PDF Printable Report Element - ONLY rendered on print */}
+    <div className="hidden print:block bg-white p-12 text-slate-900 font-sans min-h-screen text-xs select-none">
+      <style>{`
+        @media print {
+          body { background: white !important; color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          @page { size: A4 portrait; margin: 1.5cm; }
+        }
+      `}</style>
+      
+      {/* Report Header Logo & Branding */}
+      <div className="flex justify-between items-start border-b-2 border-slate-900 pb-6 mb-8">
+        <div>
+          <h1 className="text-xl font-serif font-black tracking-tight text-slate-900 uppercase">СУУТ АМРАЛТ • RESORT</h1>
+          <p className="text-[10px] text-slate-500 font-bold uppercase mt-1">БАЙГАЛИЙН ҮЗЭСГЭЛЭНТ ЦОГЦОЛБОР • ХЯНАЛТЫН ТАЙЛАН</p>
+          <p className="text-[9px] text-slate-400 mt-1">Утас: 8080-XXXX, Вэб: suut.mn, Имэйл: info@suut.mn</p>
+        </div>
+        <div className="text-right">
+          <span className="bg-slate-900 text-white font-black px-4 py-2 text-xs rounded-sm tracking-widest inline-block uppercase">ТАЙЛАН</span>
+          <p className="text-[10px] text-slate-500 font-bold mt-2">Огноо: {new Date().toLocaleDateString('mn-MN')} {new Date().toLocaleTimeString('mn-MN')}</p>
+        </div>
+      </div>
+
+      {/* Executive Report Title */}
+      <div className="text-center mb-8">
+        <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider">ЗАХИАЛГА, БОРЛУУЛАЛТЫН НЭГДСЭН СУУРЬ ТАЙЛАН</h2>
+        <div className="w-16 h-1 bg-slate-900 mx-auto mt-2"></div>
+      </div>
+
+      {/* Stats KPI Overview Blocks */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="border border-slate-300 p-4 rounded-md bg-slate-50/50">
+          <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wide block">Нийт баталгаажсан орлого</span>
+          <span className="text-base font-black text-slate-900 block mt-1 font-serif">
+            {stats.totalRevenue.toLocaleString()}₮
+          </span>
+          <p className="text-[8px] text-emerald-700 font-bold mt-1">Баталгаажсан {stats.confirmedCount} захиалга</p>
+        </div>
+
+        <div className="border border-slate-300 p-4 rounded-md bg-slate-50/50">
+          <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wide block">Нийт захиалгын хэмжээ</span>
+          <span className="text-base font-black text-slate-900 block mt-1">
+            {stats.totalBookingsCount} ш
+          </span>
+          <p className="text-[8px] text-slate-500 font-bold mt-1">Бүх системд бүртгэлтэй захиалга</p>
+        </div>
+
+        <div className="border border-slate-300 p-4 rounded-md bg-slate-50/50">
+          <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wide block">Дундаж захиалгын үнэ</span>
+          <span className="text-base font-black text-slate-900 block mt-1 font-serif">
+            {stats.averageRevenue.toLocaleString()}₮
+          </span>
+          <p className="text-[8px] text-slate-400 font-bold mt-1">Нэг захиалгын ашгийн үзүүлэлт</p>
+        </div>
+      </div>
+
+      {/* Sub-breakdown details by category */}
+      <div className="grid grid-cols-2 gap-6 mb-8">
+        {/* Monthly analysis column */}
+        <div className="border border-slate-200 rounded-md p-4 space-y-3">
+          <h3 className="font-bold text-slate-900 text-[10px] uppercase tracking-wide border-b border-slate-200 pb-1.5">Сарын орлогын үзүүлэлт</h3>
+          <ul className="divide-y divide-slate-100 text-[9px]">
+            {stats.monthlyList.length === 0 ? (
+              <li className="py-2 text-slate-400">Өгөгдөл байхгүй байна.</li>
+            ) : (
+              stats.monthlyList.map((m) => (
+                <li key={m.month} className="py-2 flex justify-between">
+                  <span className="font-bold text-slate-700">{m.year} • {m.label}</span>
+                  <div className="space-x-3 text-right">
+                    <span className="text-slate-400">{m.count} ш захиалга</span>
+                    <span className="font-black text-slate-900">{m.revenue.toLocaleString()}₮</span>
+                  </div>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+
+        {/* Category analysis column */}
+        <div className="border border-slate-200 rounded-md p-4 space-y-3">
+          <h3 className="font-bold text-slate-900 text-[10px] uppercase tracking-wide border-b border-slate-200 pb-1.5">Байршлын төрлөөр авах эрэлт</h3>
+          <ul className="divide-y divide-slate-100 text-[9px]">
+            <li className="py-2.5 flex justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-slate-900"></span>
+                <span className="font-bold text-slate-700">Модон хаус түрээс</span>
+              </div>
+              <div className="space-x-3 text-right">
+                <span className="text-slate-400">{(stats.typeMap.house?.count || 0)} ш</span>
+                <span className="font-black text-slate-900">{(stats.typeMap.house?.revenue || 0).toLocaleString()}₮</span>
+              </div>
+            </li>
+            <li className="py-2.5 flex justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                <span className="font-bold text-slate-700">Амралт/Ресорт өрөө</span>
+              </div>
+              <div className="space-x-3 text-right">
+                <span className="text-slate-400">{(stats.typeMap.resort?.count || 0)} ш</span>
+                <span className="font-black text-slate-900">{(stats.typeMap.resort?.revenue || 0).toLocaleString()}₮</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Main detailed table list of bookings */}
+      <div className="space-y-3 mb-10">
+        <h3 className="font-bold text-slate-900 text-[10px] uppercase tracking-wide border-b border-slate-200 pb-1.5">Хэрэглэгчийн бүртгэлтэй захиалгуудын жагсаалт</h3>
+        <table className="w-full text-left border-collapse border border-slate-300">
+          <thead>
+            <tr className="bg-slate-100 text-slate-700 text-[9px] font-bold uppercase tracking-widest border-b border-slate-300">
+              <th className="p-2 border border-slate-300">Захиалагч</th>
+              <th className="p-2 border border-slate-300">Төрөл / Сонголт</th>
+              <th className="p-2 border border-slate-300">Орох/Гарах огноо</th>
+              <th className="p-2 border border-slate-300">Төлбөр</th>
+              <th className="p-2 border border-slate-300 text-center">Төлөв</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 text-[9px]">
+            {bookings.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="p-4 text-center text-slate-400 font-bold">Бүртгэлтэй захиалга олдсонгүй.</td>
+              </tr>
+            ) : (
+              bookings.map((b) => (
+                <tr key={b.id} className="hover:bg-slate-50/50">
+                  <td className="p-2 border border-slate-200">
+                    <div className="font-bold text-slate-800">{b.name}</div>
+                    <div className="text-[8px] text-slate-500">{b.phone}</div>
+                  </td>
+                  <td className="p-2 border border-slate-200">
+                    <div className="font-semibold text-slate-700">{b.bookingType === 'house' ? 'Хаус' : 'Ресорт өрөө'}</div>
+                    <div className="text-[8px] text-slate-400 max-w-[150px] truncate">{b.optionTitle}</div>
+                  </td>
+                  <td className="p-2 border border-slate-200">
+                    <span className="font-bold">{b.checkIn}</span>-аас <span className="font-bold">{b.checkOut}</span>
+                  </td>
+                  <td className="p-2 border border-slate-200 font-extrabold text-slate-900 font-serif">
+                    {b.totalPrice ? `${b.totalPrice.toLocaleString()}₮` : '0₮'}
+                  </td>
+                  <td className="p-2 border border-slate-200 text-center">
+                    <span className={`inline-block text-[7px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                      b.status === 'confirmed' 
+                        ? 'bg-green-100 text-green-800 border border-green-200' 
+                        : b.status === 'cancelled' 
+                        ? 'bg-red-100 text-red-800 border border-red-200'
+                        : 'bg-yellow-100 text-yellow-800 border border-yellow-250'
+                    }`}>
+                      {b.status === 'confirmed' ? 'Батлагдсан' : b.status === 'cancelled' ? 'Цуцалсан' : 'Хүлээгдэж буй'}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Signature blocks */}
+      <div className="pt-8 border-t border-slate-400 flex justify-between text-[10px] text-slate-600 mt-auto">
+        <div className="space-y-12">
+          <p>Тайланг хянасан: ........................................... / Администратор /</p>
+          <p className="text-[8px] text-slate-400 italic">Гарын үсэг, тамга баталгаажуулсан огноо: ....... он .... сар .... өдөр</p>
+        </div>
+        <div className="space-y-12 text-right">
+          <p>Тайлан гаргасан систем: ...................................... / СУУТ Систем /</p>
+          <p className="text-[8px] text-slate-400 italic">Системд нэвтэрсэн: {adminUserEmail || user?.email || 'Админ хэрэглэгч'}</p>
+        </div>
+      </div>
+    </div>
+    </>
   );
 }
