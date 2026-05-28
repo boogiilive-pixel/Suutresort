@@ -697,6 +697,40 @@ export default function Admin() {
     }
   };
 
+  // Delete booking permanently
+  const handleDeleteBooking = async (bookingId: string) => {
+    if (!window.confirm("Та энэ захиалгыг бүрмөсөн устгахдаа итгэлтэй байна уу? Устгасны дараа сэргээх боломжгүй бөгөөд сонгосон өдрүүд хэрэглэгчдэд чөлөөлөгдөнө.")) return;
+    try {
+      // 1. Instantly update React state and ref for immediate UI updates
+      setBookings((prev) => prev.filter((item: any) => item.id !== bookingId));
+      firestoreBookingsRef.current = firestoreBookingsRef.current.filter((item: any) => item.id !== bookingId);
+
+      // 2. Remove from local storage backups
+      const local = JSON.parse(localStorage.getItem('suut_custom_bookings') || '[]');
+      const updatedLocal = local.filter((item: any) => item.id !== bookingId);
+      localStorage.setItem('suut_custom_bookings', JSON.stringify(updatedLocal));
+
+      // Trigger sync logic
+      syncBookings();
+
+      // 3. Delete via backend API in background
+      await fetch(`/api/bookings/${bookingId}`, { method: 'DELETE' }).catch((e) => console.warn("API booking deletion warning:", e));
+
+      // 4. Delete via Firestore in background
+      deleteDoc(doc(db, 'bookings', bookingId))
+        .then(() => {
+          console.log(`Firestore booking ${bookingId} successfully deleted`);
+        })
+        .catch((err) => {
+          console.warn("Firestore deleteDoc skipped or failed:", err);
+        });
+
+    } catch (err: any) {
+      console.error("Failed to delete booking: ", err);
+      alert("Захиалга устгахад алдаа гарлаа: " + err.message);
+    }
+  };
+
   // Delete news article
   const handleDeleteNews = async (newsId: string) => {
     if (!window.confirm("Та энэ мэдээг устгахдаа итгэлтэй байна уу?")) return;
@@ -1601,6 +1635,13 @@ export default function Admin() {
                                     Цуцлах
                                   </button>
                                 )}
+                                <button
+                                  onClick={() => handleDeleteBooking(b.id)}
+                                  className="p-1.5 bg-slate-50 text-slate-500 border border-slate-200 hover:bg-red-50 hover:text-red-700 hover:border-red-100 rounded-md transition-all cursor-pointer flex items-center justify-center shrink-0"
+                                  title="Устгах"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
                               </div>
                             </td>
                           </tr>

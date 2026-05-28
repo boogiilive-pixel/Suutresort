@@ -554,6 +554,31 @@ app.put("/api/bookings/:id", async (req, res) => {
   }
 });
 
+app.delete("/api/bookings/:id", async (req, res) => {
+  const { id } = req.params;
+  bookingsData = readJSON(BOOKINGS_FILE, []);
+  const initialLen = bookingsData.length;
+  bookingsData = bookingsData.filter((b: any) => b.id !== id);
+  
+  if (bookingsData.length < initialLen) {
+    writeJSON(BOOKINGS_FILE, bookingsData);
+    
+    // Sync to Firestore
+    if (db) {
+      try {
+        await deleteDoc(doc(db, "bookings", id));
+        console.log("[SUUT Server] Synced booking deletion to Firestore:", id);
+      } catch (err) {
+        console.error("[SUUT Server] Failed to delete booking from Firestore:", err);
+      }
+    }
+    
+    res.json({ success: true, message: "Booking deleted successfully" });
+  } else {
+    res.status(404).json({ error: "Booking not found" });
+  }
+});
+
 
 // ==================== Vite / Static Asset Pipeline ====================
 
