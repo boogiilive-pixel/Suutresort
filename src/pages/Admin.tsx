@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Lock, LogIn, Calendar, Plus, FileText, Check, X, Search, 
-  Trash2, User, Phone, Mail, DollarSign, RefreshCw, LogOut, AlertTriangle, Edit, Image 
+  Trash2, User, Phone, Mail, DollarSign, RefreshCw, LogOut, AlertTriangle, Edit, Image, HelpCircle 
 } from 'lucide-react';
 import { 
   collection, query, orderBy, onSnapshot, doc, 
@@ -75,6 +75,33 @@ const ADMIN_OPTIONS = [
   { id: 'room-3', type: 'room', title: 'Гэр бүлийн' },
 ];
 
+const DEFAULT_FAQS = [
+  {
+    id: 'faq-1',
+    question: 'Байрлах хугацаанд ямар ямар хоол багтсан бэ?',
+    answer: 'Манай урьдчилсан захиалга бүрт өглөө, өдөр, оройн 3 хоол багтсан байдаг байгаа.',
+    order: 1
+  },
+  {
+    id: 'faq-2',
+    question: 'Урьдчилгаа төлбөр хэдэн хувь байдаг вэ?',
+    answer: 'Захиалга баталгаажуулахад нийт үнийн дүнгийн 10 хувийн урьдчилгаа төлбөр шилжүүлэх шаардлагатай. Төлбөрийн мэдээлэл захиалга илгээсний дараа харагдах болно.',
+    order: 2
+  },
+  {
+    id: 'faq-3',
+    question: 'Гэрийн тэжээвэр амьтан авч очиж болох уу?',
+    answer: 'Тийм ээ, манай амралтын газарт гэрийн тэжээвэр амьтан авч очих боломжтой. Гэхдээ бусад амрагчдын ая тухтай байдлыг хангах үүднээс соёлтой оролцоно уу.',
+    order: 3
+  },
+  {
+    id: 'faq-4',
+    question: 'Бид хүүхдүүдтэйгээ очих гэж байгаа юм, суут ресортод тоглоомын талбай бий юу?',
+    answer: 'Тийм ээ, хүүхдийн аюулгүй гадна тоглоомын талбай болон элсэн талбай спортын талбайнууд шийдэгдсэн.',
+    order: 4
+  }
+];
+
 export default function Admin() {
   const [user, setUser] = useState<any>(null);
   const [isAdminBypassed, setIsAdminBypassed] = useState(false);
@@ -87,11 +114,13 @@ export default function Admin() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [news, setNews] = useState<any[]>([]);
   const [gallery, setGallery] = useState<any[]>([]);
+  const [faqs, setFaqs] = useState<any[]>([]);
 
   // Raw Firestore items (for merging)
   const firestoreBookingsRef = useRef<any[]>([]);
   const firestoreNewsRef = useRef<any[]>([]);
   const firestoreGalleryRef = useRef<any[]>([]);
+  const firestoreFaqsRef = useRef<any[]>([]);
   const apiNewsRef = useRef<any[]>([]);
   const apiGalleryRef = useRef<any[]>([]);
   const isSubmittingBookingsRef = useRef(false);
@@ -227,8 +256,50 @@ export default function Admin() {
     setGallery(combined);
   };
 
+  const syncFaqs = () => {
+    let local: any[] = [];
+    let deletedDefaults: any[] = [];
+    try {
+      local = JSON.parse(localStorage.getItem('suut_custom_faqs') || '[]');
+      deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_faq_ids') || '[]');
+    } catch {
+      // safe fallback
+    }
+
+    const allFetched = [...firestoreFaqsRef.current];
+    const combined = allFetched.map((fItem: any) => {
+      const localMatch = local.find((lItem: any) => lItem.id === fItem.id);
+      return localMatch ? { ...fItem, ...localMatch } : fItem;
+    });
+
+    local.forEach((lItem: any) => {
+      const exists = combined.some(item => item.id === lItem.id);
+      if (!exists) combined.push(lItem);
+    });
+
+    DEFAULT_FAQS.forEach((defItem: any) => {
+      if (deletedDefaults.includes(defItem.id)) return;
+      const exists = combined.some(item => item.id === defItem.id || item.question === defItem.question);
+      if (!exists) {
+        combined.push(defItem);
+      }
+    });
+
+    // Sort by order asc
+    combined.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+    setFaqs(combined);
+  };
+
   // Navigation tabs inside admin
-  const [activeTab, setActiveTab] = useState<'bookings' | 'add-booking' | 'add-news' | 'add-gallery'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'add-booking' | 'add-news' | 'add-gallery' | 'manage-faqs'>('bookings');
+
+  // FAQ management states
+  const [faqQuestion, setFaqQuestion] = useState('');
+  const [faqAnswer, setFaqAnswer] = useState('');
+  const [faqOrder, setFaqOrder] = useState<number>(5);
+  const [isSubmittingFaq, setIsSubmittingFaq] = useState(false);
+  const [faqSuccessMsg, setFaqSuccessMsg] = useState<string | null>(null);
+  const [editingFaq, setEditingFaq] = useState<any | null>(null);
 
   // Search/Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -283,6 +354,7 @@ export default function Admin() {
     syncBookings();
     syncNews();
     syncGallery();
+    syncFaqs();
 
     const loadAllFromApi = async () => {
       try {
@@ -436,10 +508,67 @@ export default function Admin() {
       syncGallery();
     });
 
+    // Load faqs in real-time
+    const qFaqs = query(collection(db, 'faqs'), orderBy('order', 'asc'));
+    const unsubFaqs = onSnapshot(qFaqs, async (snapshot) => {
+      const list: any[] = [];
+      snapshot.forEach((snap) => {
+        list.push({ id: snap.id, ...snap.data() });
+      });
+
+      // Auto-populate default FAQs in Firestore if completely empty
+      if (snapshot.empty && !localStorage.getItem('suut_faqs_populated')) {
+        localStorage.setItem('suut_faqs_populated', 'true');
+        for (const item of DEFAULT_FAQS) {
+          try {
+            await setDoc(doc(db, 'faqs', item.id), {
+              question: item.question,
+              answer: item.answer,
+              order: item.order,
+              createdAt: new Date()
+            });
+          } catch (e) {
+            console.error("Failed to seed default faq: ", e);
+          }
+        }
+      } else {
+        // Sync custom faqs stored locally in Chrome which are missing in Cloud DB
+        try {
+          const localCustom = JSON.parse(localStorage.getItem('suut_custom_faqs') || '[]');
+          const missingInFirestore = localCustom.filter((lItem: any) => {
+            return !list.some((fItem) => fItem.id === lItem.id || fItem.question === lItem.question);
+          });
+
+          for (const item of missingInFirestore) {
+            try {
+              await setDoc(doc(db, 'faqs', item.id), {
+                question: item.question,
+                answer: item.answer,
+                order: item.order || 5,
+                createdAt: safeToDate(item.createdAt || new Date())
+              });
+              console.log(`Successfully synced missing custom FAQ to Firestore: ${item.question}`);
+            } catch (err) {
+              console.warn(`Sync failed for FAQ: ${item.question}`, err);
+            }
+          }
+        } catch (err) {
+          console.warn("Error checking/uploading missing custom FAQ items:", err);
+        }
+      }
+
+      firestoreFaqsRef.current = list;
+      syncFaqs();
+    }, (err) => {
+      console.error("Error loading faqs as admin: ", err);
+      syncFaqs();
+    });
+
     return () => {
       unsubBookings();
       unsubNews();
       unsubGallery();
+      unsubFaqs();
     };
   }, [user, isAdminBypassed]);
 
@@ -863,6 +992,123 @@ export default function Admin() {
     }
   };
 
+  // Delete FAQ handler
+  const handleDeleteFaq = async (faqId: string) => {
+    if (!window.confirm("Та энэ асуултыг устгахдаа итгэлтэй байна уу?")) return;
+    try {
+      // 1. Delete on Firestore
+      await deleteDoc(doc(db, 'faqs', faqId)).catch(() => {});
+
+      // 2. If it's a default FAQ, track it as deleted
+      if (faqId.startsWith('faq-')) {
+        const deletedFaqIds = JSON.parse(localStorage.getItem('suut_deleted_default_faq_ids') || '[]');
+        if (!deletedFaqIds.includes(faqId)) {
+          deletedFaqIds.push(faqId);
+          localStorage.setItem('suut_deleted_default_faq_ids', JSON.stringify(deletedFaqIds));
+        }
+      }
+
+      // 3. Update local storage backups
+      const local = JSON.parse(localStorage.getItem('suut_custom_faqs') || '[]');
+      const updated = local.filter((item: any) => item.id !== faqId);
+      localStorage.setItem('suut_custom_faqs', JSON.stringify(updated));
+      syncFaqs();
+    } catch (err) {
+      console.error("Delete FAQ failed: ", err);
+    }
+  };
+
+  // Edit FAQ click handler
+  const handleEditFaqClick = (item: any) => {
+    setEditingFaq(item);
+    setFaqQuestion(item.question || '');
+    setFaqAnswer(item.answer || '');
+    setFaqOrder(item.order || 5);
+    window.scrollTo({ top: 120, behavior: 'smooth' });
+  };
+
+  // Cancel edit FAQ
+  const handleCancelEditFaq = () => {
+    setEditingFaq(null);
+    setFaqQuestion('');
+    setFaqAnswer('');
+    setFaqOrder(5);
+  };
+
+  // Publish / Update FAQ handler
+  const handlePublishFaq = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!faqQuestion.trim() || !faqAnswer.trim()) {
+      alert("Асуулт болон хариултыг заавал оруулна уу.");
+      return;
+    }
+
+    setIsSubmittingFaq(true);
+    setFaqSuccessMsg(null);
+
+    const payload = {
+      question: faqQuestion,
+      answer: faqAnswer,
+      order: Number(faqOrder) || 5,
+    };
+
+    try {
+      const local = JSON.parse(localStorage.getItem('suut_custom_faqs') || '[]');
+
+      if (editingFaq) {
+        // Save to Firestore
+        await setDoc(doc(db, 'faqs', editingFaq.id), {
+          ...payload,
+          createdAt: editingFaq.createdAt || new Date()
+        }, { merge: true }).catch((err) => {
+          console.error("Firestore FAQ edit failed: ", err);
+        });
+
+        // Save to Local storage
+        const updated = local.map((item: any) => {
+          if (item.id === editingFaq.id) return { ...item, ...payload };
+          return item;
+        });
+        
+        // Also ensure if we edited a default FAQ, it is saved in local custom so it doesn't get overwritten
+        const exists = updated.some((item: any) => item.id === editingFaq.id);
+        if (!exists) {
+          updated.push({ id: editingFaq.id, ...payload });
+        }
+
+        localStorage.setItem('suut_custom_faqs', JSON.stringify(updated));
+
+        // Sync again
+        syncFaqs();
+        setFaqSuccessMsg("Асуулт хариултыг амжилттай шинэчиллээ!");
+        handleCancelEditFaq();
+      } else {
+        const generatedId = `faq-${Date.now()}`;
+        
+        // Save to Firestore
+        await setDoc(doc(db, 'faqs', generatedId), { 
+          ...payload, 
+          createdAt: new Date() 
+        }).catch((err) => {
+          console.error("Firestore FAQ save failed: ", err);
+        });
+
+        // Save to Local storage backup
+        local.push({ id: generatedId, ...payload, createdAt: new Date() });
+        localStorage.setItem('suut_custom_faqs', JSON.stringify(local));
+
+        syncFaqs();
+        setFaqSuccessMsg("Шинэ асуулт хариултыг амжилттай нэмж нийтэллээ!");
+        handleCancelEditFaq();
+      }
+    } catch (err: any) {
+      console.error("Publish FAQ failed: ", err);
+      alert("Асуулт хариулт хадгалахад алдаа гарлаа: " + err.message);
+    } finally {
+      setIsSubmittingFaq(false);
+    }
+  };
+
   // Submit manual booking from admin panel
   const handleAddManualBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1119,6 +1365,17 @@ export default function Admin() {
             }`}
           >
             <Image size={16} /> Галерей удирдах ({gallery.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('manage-faqs')}
+            className={`py-4 px-2 font-bold text-sm transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
+              activeTab === 'manage-faqs' 
+                ? 'border-brand-teal text-brand-teal' 
+                : 'border-transparent text-slate-500 hover:text-brand-teal'
+            }`}
+          >
+            <HelpCircle size={16} /> Асуулт, хариулт ({faqs.length})
           </button>
         </div>
       </div>
@@ -1700,6 +1957,146 @@ export default function Admin() {
                           >
                             <Trash2 size={14} />
                           </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB 5: MANAGE FAQS */}
+          {activeTab === 'manage-faqs' && (
+            <motion.div
+              key="faqs-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+            >
+              {/* Add / Edit Form */}
+              <div className="lg:col-span-2 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm space-y-6">
+                <div>
+                  <h2 className="text-2xl font-serif font-bold text-brand-teal">
+                    {editingFaq ? 'Асуулт Хариулт Засах' : 'Шинэ Асуулт Хариулт Нийтлэх'}
+                  </h2>
+                  <p className="text-slate-500 text-xs mt-1">
+                    {editingFaq ? 'Сонгосон асуулт хариултыг засаж шинэчилж байна.' : 'Энд нийтэлсэн асуулт хариултууд вэб талбарын Нүүр Хуудас дээр FAQ хэсэгт заасан дарааллаар харагдана.'}
+                  </p>
+                </div>
+
+                {faqSuccessMsg && (
+                  <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-800 text-xs flex justify-between items-center">
+                    <span>{faqSuccessMsg}</span>
+                    <button onClick={() => setFaqSuccessMsg(null)} className="text-emerald-500 hover:text-emerald-700">
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                <form onSubmit={handlePublishFaq} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-2 space-y-1">
+                      <label className="text-xs font-bold text-brand-teal">Асуултын гарчиг (Question) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={faqQuestion}
+                        onChange={(e) => setFaqQuestion(e.target.value)}
+                        placeholder="Жишээ: Амралтын газарт гэрийн тэжээвэр амьтан авчирч болох уу?"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-brand-teal">Харагдах эрэмбэ (Order) </label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={faqOrder}
+                        onChange={(e) => setFaqOrder(Number(e.target.value) || 1)}
+                        placeholder="5"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-brand-teal">Хариултын дэлгэрэнгүй (Answer) *</label>
+                    <textarea
+                      required
+                      value={faqAnswer}
+                      onChange={(e) => setFaqAnswer(e.target.value)}
+                      rows={6}
+                      placeholder="Асуултанд өгөх тодорхой, дэлгэрэнгүй хариултыг энд бичнэ. Шаардлагатай бол шинэ мөр гаргаж болно."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none font-sans"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingFaq}
+                      className="w-full bg-brand-teal hover:bg-brand-teal/90 text-white p-3.5 rounded-full font-bold text-sm transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                    >
+                      {isSubmittingFaq ? 'Хадгалж байна...' : (editingFaq ? 'Асуултыг Шинэчлэх' : 'Асуулт нэмж нийтлэх')}
+                    </button>
+                    {editingFaq && (
+                      <button
+                        type="button"
+                        onClick={handleCancelEditFaq}
+                        className="px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-bold text-sm transition-all cursor-pointer"
+                      >
+                        Цуцлах
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+
+              {/* FAQs List Overview */}
+              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <h3 className="text-lg font-serif font-bold text-brand-teal">Асуултууд ({faqs.length})</h3>
+                  <span className="text-xs text-brand-teal font-mono bg-brand-teal/5 px-2.5 py-1 rounded-full border border-brand-teal/10 font-bold">Эрэмбэлэгдсэн</span>
+                </div>
+                
+                <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto pr-2 space-y-2">
+                  {faqs.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400 text-xs leading-relaxed">
+                      Одоогоор ямар нэг нэмэлт асуулт оруулаагүй байна.<br />
+                    </div>
+                  ) : (
+                    faqs.map((item, index) => (
+                      <div key={item.id || index} className="py-4 space-y-2">
+                        <div className="flex justify-between items-start gap-3">
+                          <div className="space-y-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded text-[9px] uppercase tracking-wider">
+                                Эрэмбэ: {item.order || 5}
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-800 leading-snug">{item.question}</h4>
+                            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed whitespace-pre-line">{item.answer}</p>
+                          </div>
+                          
+                          <div className="flex gap-1 shrink-0">
+                            <button
+                              onClick={() => handleEditFaqClick(item)}
+                              className="p-1 px-2 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 rounded-lg transition-all cursor-pointer"
+                              title="Засах"
+                            >
+                              <Edit size={12} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteFaq(item.id)}
+                              className="p-1 px-2 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 rounded-lg transition-all cursor-pointer"
+                              title="Устгах"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, Star, CheckCircle2, MapPin, Users, Home as HomeIcon, Bed, ChevronLeft, ChevronRight, Quote, Calendar, Copy, Facebook } from 'lucide-react';
+import { ArrowRight, Star, CheckCircle2, MapPin, Users, Home as HomeIcon, Bed, ChevronLeft, ChevronRight, Quote, Calendar, Copy, Facebook, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn, safeToDate, formatLocaleDate, getDirectDriveUrl } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -264,6 +264,33 @@ const LOCAL_DEFAULT_NEWS = [
   }
 ];
 
+const DEFAULT_FAQS = [
+  {
+    id: 'faq-1',
+    question: 'Байрлах хугацаанд ямар ямар хоол багтсан бэ?',
+    answer: 'Манай урьдчилсан захиалга бүрт өглөө, өдөр, оройн 3 хоол багтсан байдаг байгаа.',
+    order: 1
+  },
+  {
+    id: 'faq-2',
+    question: 'Урьдчилгаа төлбөр хэдэн хувь байдаг вэ?',
+    answer: 'Захиалга баталгаажуулахад нийт үнийн дүнгийн 10 хувийн урьдчилгаа төлбөр шилжүүлэх шаардлагатай. Төлбөрийн мэдээлэл захиалга илгээсний дараа харагдах болно.',
+    order: 2
+  },
+  {
+    id: 'faq-3',
+    question: 'Гэрийн тэжээвэр амьтан авч очиж болох уу?',
+    answer: 'Тийм ээ, манай амралтын газарт гэрийн тэжээвэр амьтан авч очих боломжтой. Гэхдээ бусад амрагчдын ая тухтай байдлыг хангах үүднээс соёлтой оролцоно уу.',
+    order: 3
+  },
+  {
+    id: 'faq-4',
+    question: 'Бид хүүхдүүдтэйгээ очих гэж байгаа юм, суут ресортод тоглоомын талбай бий юу?',
+    answer: 'Тийм ээ, хүүхдийн аюулгүй гадна тоглоомын талбай болон элсэн талбай спортын талбайнууд шийдэгдсэн.',
+    order: 4
+  }
+];
+
 export default function Home() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -291,6 +318,45 @@ export default function Home() {
     }
   });
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [faqs, setFaqs] = useState<any[]>(() => {
+    try {
+      const localCustom = JSON.parse(localStorage.getItem('suut_custom_faqs') || '[]');
+      return localCustom.length > 0 ? localCustom : DEFAULT_FAQS;
+    } catch {
+      return DEFAULT_FAQS;
+    }
+  });
+  const [openFaqId, setOpenFaqId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const q = query(collection(db, 'faqs'), orderBy('order', 'asc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const list: any[] = [];
+      snapshot.forEach((snap) => {
+        list.push({ id: snap.id, ...snap.data() });
+      });
+      if (list.length > 0) {
+        setFaqs(list);
+      } else {
+        const localCustom = JSON.parse(localStorage.getItem('suut_custom_faqs') || '[]');
+        if (localCustom.length > 0) {
+          setFaqs(localCustom);
+        } else {
+          setFaqs(DEFAULT_FAQS);
+        }
+      }
+    }, (err) => {
+      console.warn("Error fetching FAQs:", err);
+      const localCustom = JSON.parse(localStorage.getItem('suut_custom_faqs') || '[]');
+      if (localCustom.length > 0) {
+        setFaqs(localCustom);
+      } else {
+        setFaqs(DEFAULT_FAQS);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     let firestoreNews: any[] = [];
@@ -989,6 +1055,70 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-24 bg-[#FAF9F5] border-t border-brand-teal/5 relative">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="text-center space-y-3 mb-16">
+            <span className="bg-brand-teal/10 text-brand-teal text-xs font-bold px-4 py-1.5 rounded-full border border-brand-teal/20 uppercase tracking-widest flex items-center gap-1.5 w-fit mx-auto">
+              <HelpCircle size={14} /> Түгээмэл Асуулт, Хариулт
+            </span>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-brand-teal">Асуулт & Хариулт</h2>
+            <p className="text-brand-teal/60 max-w-lg mx-auto text-sm md:text-base">SUUT Resort-той холбоотой амрагчдаас хамгийн их ирдэг асуултуудад эндээс хариулт аваарай.</p>
+          </div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, index) => {
+              const isOpen = openFaqId === faq.id;
+              return (
+                <div 
+                  key={faq.id || index}
+                  className={cn(
+                    "bg-white rounded-2xl border transition-all duration-300 overflow-hidden",
+                    isOpen 
+                      ? "border-brand-teal/30 shadow-md ring-1 ring-brand-teal/5" 
+                      : "border-brand-teal/10 hover:border-brand-teal/20 shadow-xs hover:shadow-sm"
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaqId(isOpen ? null : faq.id)}
+                    className="w-full text-left py-5 px-6 md:px-8 flex justify-between items-center gap-4 focus:outline-none cursor-pointer"
+                  >
+                    <span className="font-bold text-brand-teal text-base md:text-lg flex items-center gap-3">
+                      <span className="text-xs font-mono font-bold text-brand-teal/40 bg-brand-teal/5 w-6 h-6 rounded-full flex items-center justify-center shrink-0">
+                        {index + 1}
+                      </span>
+                      {faq.question}
+                    </span>
+                    <span className={cn(
+                      "p-1.5 rounded-full bg-brand-teal/5 text-brand-teal transition-transform duration-300",
+                      isOpen ? "rotate-180 bg-brand-teal text-white" : ""
+                    )}>
+                      <ChevronDown size={18} />
+                    </span>
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                      >
+                        <div className="px-6 md:px-8 pb-6 pt-1 text-brand-teal/85 border-t border-brand-teal/5 text-sm md:text-base leading-relaxed bg-brand-teal/[0.01]">
+                          <p className="whitespace-pre-line">{faq.answer}</p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

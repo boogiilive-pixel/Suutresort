@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { DayPicker, DateRange } from 'react-day-picker';
 import { format, isSameDay, isBefore, startOfToday, addDays, getDay, differenceInCalendarDays } from 'date-fns';
 import { mn } from 'date-fns/locale';
-import { Calendar as CalendarIcon, Users, Home as HomeIcon, Bed, CheckCircle2, AlertCircle, Loader2, Mail } from 'lucide-react';
+import { Calendar as CalendarIcon, Users, Home as HomeIcon, Bed, CheckCircle2, AlertCircle, Loader2, Mail, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import 'react-day-picker/dist/style.css';
 
@@ -487,6 +487,97 @@ export default function Booking() {
                     </div>
                   </div>
                 </div>
+
+                {/* Bank account transfer details */}
+                <div className="p-6 bg-emerald-50/50 rounded-2xl text-left space-y-4 max-w-md mx-auto border border-brand-teal/20 shadow-sm">
+                  <h4 className="font-bold text-brand-teal font-serif border-b border-brand-teal/10 pb-2 flex items-center gap-2">
+                    <span>💵 Урьдчилгаа Төлбөр Шилжүүлэх Данс</span>
+                  </h4>
+                  <div className="space-y-3 text-sm">
+                    {selectedType === 'house' ? (
+                      <>
+                        <div className="flex justify-between items-center py-1">
+                          <span className="text-brand-teal/60">Банк:</span>
+                          <span className="font-bold text-brand-teal">Хаан банк</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-t border-brand-teal/5">
+                          <span className="text-brand-teal/60">Дансны дугаар:</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-brand-teal bg-white px-2.5 py-1 rounded border border-brand-teal/10">5622094861</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText("5622094861");
+                                alert("Хаусын дансны дугаар хуулагдлаа: 5622094861");
+                              }}
+                              className="p-1.5 hover:bg-brand-teal/10 text-brand-teal rounded-lg transition-transform hover:scale-105"
+                              title="Хуулах"
+                            >
+                              <Copy size={16} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-t border-brand-teal/5">
+                          <span className="text-brand-teal/60">Хүлээн авагч:</span>
+                          <span className="font-bold text-brand-teal">Purvee Bolormaa</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-t border-brand-teal/5">
+                          <span className="text-brand-teal/60">IBAN / Код:</span>
+                          <span className="font-mono font-bold text-brand-teal">MN12000500</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-center py-1">
+                          <span className="text-brand-teal/60">Банк:</span>
+                          <span className="font-bold text-brand-teal">Хаан банк</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-t border-brand-teal/5">
+                          <span className="text-brand-teal/60">Дансны дугаар:</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-brand-teal bg-white px-2.5 py-1 rounded border border-brand-teal/10">5035313916</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText("5035313916");
+                                alert("Амралт/ресортын дансны дугаар хуулагдлаа: 5035313916");
+                              }}
+                              className="p-1.5 hover:bg-brand-teal/10 text-brand-teal rounded-lg transition-transform hover:scale-105"
+                              title="Хуулах"
+                            >
+                              <Copy size={16} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-t border-brand-teal/5">
+                          <span className="text-brand-teal/60">Хүлээн авагч:</span>
+                          <span className="font-bold text-brand-teal">Erdenebat Bumchin</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-t border-brand-teal/5">
+                          <span className="text-brand-teal/60">IBAN / Код:</span>
+                          <span className="font-mono font-bold text-brand-teal">MN61000500</span>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="pt-2 border-t border-brand-teal/10 flex justify-between items-center">
+                      <span className="font-bold text-brand-teal/80">Урьдчилгаа дүн (10%):</span>
+                      <span className="font-extrabold text-[#d32f2f] text-base">
+                        {(priceReport.totalPrice * 0.1).toLocaleString()}₮
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-brand-teal/5 rounded-xl border border-brand-teal/10 space-y-1 mt-1">
+                      <div className="text-xs text-brand-teal/50 font-bold uppercase tracking-widest">Гүйлгээний утга:</div>
+                      <div className="text-xs font-bold text-brand-teal bg-white/70 p-2 rounded border border-brand-teal/5 shadow-inner">
+                        <span className="text-brand-teal">Утасны дугаар, Нэр</span>
+                        <span className="block text-brand-teal/60 font-medium mt-1">
+                          (Жишээлбэл: <span className="underline">{formData.phone || '88XXXXXX'} {formData.name || 'Болд'}</span>)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 
                 <div className="p-6 bg-brand-teal/5 rounded-2xl text-left space-y-3 max-w-md mx-auto border border-brand-teal/10">
                   <div className="flex justify-between text-sm"><span className="text-brand-teal/50">Захиалагч:</span> <span className="font-bold text-brand-teal">{formData.name}</span></div>
@@ -858,6 +949,97 @@ export default function Booking() {
                           </div>
                         </div>
                         
+                        {/* Summary Bank Details Card */}
+                        <div className="p-6 bg-brand-teal/5 rounded-2xl text-left space-y-4 border border-brand-teal/20 shadow-sm">
+                          <h4 className="font-bold text-brand-teal font-serif border-b border-brand-teal/10 pb-2 flex items-center gap-2 text-sm animate-pulse">
+                            <span>💵 Урьдчилгаа Төлбөр Төлөх Данс</span>
+                          </h4>
+                          <div className="space-y-3.5 text-xs">
+                            {selectedType === 'house' ? (
+                              <>
+                                <div className="flex justify-between items-center py-0.5">
+                                  <span className="text-brand-teal/60">Банк:</span>
+                                  <span className="font-bold text-brand-teal">Хаан банк</span>
+                                </div>
+                                <div className="flex justify-between items-center py-0.5 border-t border-brand-teal/5">
+                                  <span className="text-brand-teal/60">Данс:</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-mono font-bold text-brand-teal bg-white px-2 py-0.5 rounded border border-brand-teal/10">5622094861</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText("5622094861");
+                                        alert("Дансны дугаар хуулагдлаа: 5622094861");
+                                      }}
+                                      className="p-1 hover:bg-brand-teal/10 text-brand-teal rounded transition-all"
+                                      title="Хуулах"
+                                    >
+                                      <Copy size={13} />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="flex justify-between items-center py-0.5 border-t border-brand-teal/5">
+                                  <span className="text-brand-teal/60">Нэр:</span>
+                                  <span className="font-bold text-brand-teal">Purvee Bolormaa</span>
+                                </div>
+                                <div className="flex justify-between items-center py-0.5 border-t border-brand-teal/5">
+                                  <span className="text-brand-teal/60">IBAN:</span>
+                                  <span className="font-mono font-bold text-brand-teal">MN12000500</span>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="flex justify-between items-center py-0.5">
+                                  <span className="text-brand-teal/60">Банк:</span>
+                                  <span className="font-bold text-brand-teal">Хаан банк</span>
+                                </div>
+                                <div className="flex justify-between items-center py-0.5 border-t border-brand-teal/5">
+                                  <span className="text-brand-teal/60">Данс:</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-mono font-bold text-brand-teal bg-white px-2 py-0.5 rounded border border-brand-teal/10">5035313916</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText("5035313916");
+                                        alert("Дансны дугаар хуулагдлаа: 5035313916");
+                                      }}
+                                      className="p-1 hover:bg-brand-teal/10 text-brand-teal rounded transition-all"
+                                      title="Хуулах"
+                                    >
+                                      <Copy size={13} />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="flex justify-between items-center py-0.5 border-t border-brand-teal/5">
+                                  <span className="text-brand-teal/60">Нэр:</span>
+                                  <span className="font-bold text-brand-teal">Erdenebat Bumchin</span>
+                                </div>
+                                <div className="flex justify-between items-center py-0.5 border-t border-brand-teal/5">
+                                  <span className="text-brand-teal/60">IBAN:</span>
+                                  <span className="font-mono font-bold text-brand-teal">MN61000500</span>
+                                </div>
+                              </>
+                            )}
+
+                            <div className="pt-2 border-t border-brand-teal/10 flex justify-between items-center font-bold">
+                              <span className="text-brand-teal/80">Урьдчилгаа дүн (10%):</span>
+                              <span className="text-[#d32f2f]">
+                                {(priceReport.totalPrice * 0.1).toLocaleString()}₮
+                              </span>
+                            </div>
+
+                            <div className="p-2.5 bg-brand-teal/5 rounded-xl border border-brand-teal/10 space-y-0.5">
+                              <div className="text-[10px] text-brand-teal/50 font-bold uppercase tracking-widest">Гүйлгээний утга:</div>
+                              <div className="text-[11px] font-bold text-brand-teal leading-relaxed">
+                                <span className="underline">Утасны дугаар, Нэр</span>
+                                <span className="block text-brand-teal/50 font-medium text-[10px] mt-0.5">
+                                  (Жишээ: {formData.phone || '88XXXXXX'} {formData.name || 'Болд'})
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
                         <div className="flex items-start gap-3 p-4 bg-brand-red/5 rounded-2xl border border-brand-red/10 text-brand-red text-xs">
                           <AlertCircle size={16} className="shrink-0" />
                           <p>Захиалга баталгаажуулахын тулд бид тантай утсаар холбогдох болно. Урьдчилгаа төлбөр төлснөөр захиалга баталгаажна.</p>
