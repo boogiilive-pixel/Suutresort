@@ -21,7 +21,7 @@ const tours: TourProgram[] = [
   {
     title: 'НАМРЫН СПАРТАКИАД',
     subtitle: 'Спорт, танин мэдэхүйн өдрийн аялал',
-    price: '69,000₮',
+    price: '74,900₮',
     time: '09:00 - 18:00',
     bgGradient: 'from-amber-500/10 to-orange-500/5',
     textColor: 'text-amber-600',
@@ -45,7 +45,7 @@ const tours: TourProgram[] = [
   {
     title: 'ЦАСНЫ БАЯР ӨВЛИЙН КЕМП',
     subtitle: 'Өвлийн гайхамшиг, цасан тоглоом бүхий өдрийн аялал',
-    price: '69,000₮',
+    price: '74,900₮',
     time: '09:00 - 18:00',
     bgGradient: 'from-sky-500/10 to-blue-500/5',
     textColor: 'text-sky-600',
@@ -69,7 +69,7 @@ const tours: TourProgram[] = [
   {
     title: 'ШИНЭ ТӨЛ - МАЛЧИН АЙЛААР ЗОЧЛОХ',
     subtitle: 'Монгол ахуй, төл малтай танилцах танин мэдэхүйн аялал',
-    price: '69,000₮',
+    price: '74,900₮',
     time: '09:00 - 18:00',
     bgGradient: 'from-purple-500/10 to-indigo-500/5',
     textColor: 'text-purple-600',
@@ -124,7 +124,7 @@ export default function EcoTour() {
             className="text-4xl md:text-6xl font-serif font-bold mb-6 leading-tight"
           >
             Сурагчдад зориулсан <br />
-            <span className="text-brand-yellow italic">Эко өдрийн аялал</span>
+            <span className="text-brand-yellow italic">Өдрийн Эко Аялал</span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
