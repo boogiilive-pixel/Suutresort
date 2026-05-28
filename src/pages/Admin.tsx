@@ -347,7 +347,7 @@ export default function Admin() {
 
   // Sync Bookings & News once user is logged in / bypassed as Admin
   useEffect(() => {
-    const isAuthorized = (user?.email === "boogiilive@gmail.com") || isAdminBypassed;
+    const isAuthorized = (user?.email === "boogiilive@gmail.com" || user?.email === "boonoogod@gmail.com") || isAdminBypassed;
     if (!isAuthorized) return;
 
     // Load instantly from local storage first (zero latency)
@@ -1219,7 +1219,7 @@ export default function Admin() {
     }
   };
 
-  const isAccessAllowed = (user?.email === "boogiilive@gmail.com") || isAdminBypassed;
+  const isAccessAllowed = (user?.email === "boogiilive@gmail.com" || user?.email === "boonoogod@gmail.com") || isAdminBypassed;
 
   // Filter & search bookings
   const filteredBookings = bookings.filter((b) => {

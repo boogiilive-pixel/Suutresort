@@ -261,6 +261,7 @@ export default function Booking() {
       _subject: `🔔 ШИНЭ ЗАХИАЛГА: ${name} (${selectedOption?.title || 'Суут Амралт'})`,
       _template: 'table',
       _replyto: email,
+      _cc: 'boogiilive@gmail.com',
       "Захиалагчийн нэр": name,
       "Утасны дугаар": phone,
       "Имэйл хаяг": email,
@@ -273,7 +274,7 @@ export default function Booking() {
     };
 
     try {
-      await fetch('https://formsubmit.co/ajax/boogiilive@gmail.com', {
+      await fetch('https://formsubmit.co/ajax/boonoogod@gmail.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -281,7 +282,7 @@ export default function Booking() {
         },
         body: JSON.stringify(payload)
       });
-      console.log('Automated booking email dispatched successfully to boogiilive@gmail.com');
+      console.log('Automated booking email dispatched successfully to boonoogod@gmail.com (CC: boogiilive@gmail.com)');
     } catch (error) {
       console.error('Automated booking email dispatch failed:', error);
     }
@@ -308,7 +309,7 @@ export default function Booking() {
       `--------------------`
     );
     
-    window.location.href = `mailto:boogiilive@gmail.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:boonoogod@gmail.com,boogiilive@gmail.com?subject=${subject}&body=${body}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
