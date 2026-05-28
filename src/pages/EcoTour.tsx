@@ -43,7 +43,7 @@ const tours: TourProgram[] = [
     ]
   },
   {
-    title: 'ЦАСНЫ БАЯР ӨВЛИЙН КЕМП',
+    title: 'ЦАСНЫ БАЯР, ӨВЛИЙН КЕМП',
     subtitle: 'Өвлийн гайхамшиг, цасан тоглоом бүхий өдрийн аялал',
     price: '74,900₮',
     time: '09:00 - 18:00',
@@ -132,7 +132,7 @@ export default function EcoTour() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto font-light leading-relaxed mb-6"
           >
-            Эрхэм сурагчдад зориулж, олон төрлийн сонирхолтой хөтөлбөр бүхий, дурсамж дүүрэн өдрийн Эко аяллыг санал болгож байна.
+            Сурагчдад зориулж, олон төрлийн сонирхолтой хөтөлбөр бүхий, дурсамж дүүрэн өдрийн Эко аяллыг санал болгож байна.
           </motion.p>
         </div>
       </section>
