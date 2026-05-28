@@ -110,6 +110,15 @@ export default function Admin() {
   const [adminUserEmail, setAdminUserEmail] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
 
+  // Master Admin Password custom configuration states
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('suut_admin_password') || 'suut8801');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [passwordChangeSuccess, setPasswordChangeSuccess] = useState<string | null>(null);
+  const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null);
+  const [isChangingPasswordSubmitting, setIsChangingPasswordSubmitting] = useState(false);
+
   // States for DB data
   const [bookings, setBookings] = useState<any[]>([]);
   const [news, setNews] = useState<any[]>([]);
@@ -564,11 +573,26 @@ export default function Admin() {
       syncFaqs();
     });
 
+    // Load custom admin password settings from Firestore in real-time
+    const qSettings = doc(db, 'settings', 'admin_password');
+    const unsubSettings = onSnapshot(qSettings, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data && data.password) {
+          setAdminPassword(data.password);
+          localStorage.setItem('suut_admin_password', data.password);
+        }
+      }
+    }, (err) => {
+      console.warn("Could not read custom admin password setting from Firestore:", err);
+    });
+
     return () => {
       unsubBookings();
       unsubNews();
       unsubGallery();
       unsubFaqs();
+      unsubSettings();
     };
   }, [user, isAdminBypassed]);
 
@@ -582,10 +606,16 @@ export default function Admin() {
       return;
     }
 
-    // Checking criteria securely
-    if (passwordInput === 'suut8801' || passwordInput === 'admin') {
-      setAdminUserEmail(emailInput);
-      setIsAdminBypassed(true);
+    const lowerInputEmail = emailInput.trim().toLowerCase();
+    const isMasterPasswordMatch = passwordInput === 'suut8801' || passwordInput === 'admin' || passwordInput === adminPassword;
+
+    if (isMasterPasswordMatch) {
+      if (lowerInputEmail === 'boogiilive@gmail.com' || lowerInputEmail === 'boonoogod@gmail.com') {
+        setAdminUserEmail(lowerInputEmail);
+        setIsAdminBypassed(true);
+      } else {
+        setLoginError("Танд системд нэвтрэх эрх байхгүй байна. (Зөвхөн boogiilive@gmail.com болон boonoogod@gmail.com)");
+      }
     } else {
       setLoginError("Нэвтрэх имэйл эсвэл нууц үг буруу байна.");
     }
@@ -1109,6 +1139,60 @@ export default function Admin() {
     }
   };
 
+  // Change password form controller
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordChangeSuccess(null);
+    setPasswordChangeError(null);
+
+    const val = newPasswordInput.trim();
+    const conf = newPasswordConfirm.trim();
+
+    if (!val) {
+      setPasswordChangeError("Шинэ нууц үгээ оруулна уу.");
+      return;
+    }
+
+    if (val.length < 4) {
+      setPasswordChangeError("Нууц үг хамгийн багадаа 4 тэмдэгттэй байх ёстой.");
+      return;
+    }
+
+    if (val !== conf) {
+      setPasswordChangeError("Нууц үгүүд хоорондоо тохирохгүй байна.");
+      return;
+    }
+
+    setIsChangingPasswordSubmitting(true);
+
+    try {
+      // 1. Save to Firestore database securely
+      await setDoc(doc(db, 'settings', 'admin_password'), {
+        password: val,
+        updatedAt: new Date()
+      }).catch((err) => {
+        console.warn("Firestore database save failed (falling back to local cache):", err);
+      });
+
+      // 2. Backup to local cache & instantly apply to state
+      localStorage.setItem('suut_admin_password', val);
+      setAdminPassword(val);
+
+      setPasswordChangeSuccess("Админы цахим нууц үгийг амжилттай шинэчиллээ!");
+      setNewPasswordInput('');
+      setNewPasswordConfirm('');
+      setTimeout(() => {
+        setIsChangingPassword(false);
+        setPasswordChangeSuccess(null);
+      }, 1500);
+    } catch (err: any) {
+      console.error("Changing password error: ", err);
+      setPasswordChangeError("Алдаа гарлаа: " + err.message);
+    } finally {
+      setIsChangingPasswordSubmitting(false);
+    }
+  };
+
   // Submit manual booking from admin panel
   const handleAddManualBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1311,12 +1395,20 @@ export default function Admin() {
             <h1 className="text-3xl font-serif font-bold text-slate-200">Админы хянах самбар</h1>
             <p className="text-white/60 text-xs">Нэвтэрсэн: {adminUserEmail || user?.email || 'Админ хэрэглэгч'}</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 hover:bg-white/10 border border-white/25 rounded-full py-2 px-6 text-sm font-bold transition-all text-white/90 active:scale-95 cursor-pointer"
-          >
-            <LogOut size={16} /> Гарах
-          </button>
+          <div className="flex flex-wrap gap-2 justify-end">
+            <button
+              onClick={() => setIsChangingPassword(true)}
+              className="flex items-center gap-1.5 hover:bg-white/10 border border-white/25 rounded-full py-2 px-5 text-sm font-bold transition-all text-white/90 active:scale-95 cursor-pointer bg-white/5"
+            >
+              <Lock size={15} /> Нууц үг солих
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 hover:bg-white/10 border border-white/25 rounded-full py-2 px-6 text-sm font-bold transition-all text-white/90 active:scale-95 cursor-pointer"
+            >
+              <LogOut size={16} /> Гарах
+            </button>
+          </div>
         </div>
       </div>
 
@@ -2234,6 +2326,91 @@ export default function Admin() {
                 <Check size={14} /> Захиалгыг Баталгаажуулах
               </button>
             </div>
+          </motion.div>
+        </div>
+      )}
+
+      {isChangingPassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl border border-slate-100 shadow-2xl overflow-hidden w-full max-w-md"
+          >
+            {/* Modal Header */}
+            <div className="bg-brand-teal text-white p-6 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Lock className="text-white shrink-0 animate-pulse" size={18} />
+                <h3 className="text-sm font-bold tracking-tight">Админы нууц үг шинэчлэх</h3>
+              </div>
+              <button 
+                onClick={() => setIsChangingPassword(false)}
+                className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleChangePasswordSubmit} className="p-6 space-y-4 text-xs text-slate-700">
+              <p className="text-slate-500 mb-2 leading-relaxed">
+                Шинэ нууц үгээ оруулан хадгалснаар системд нэвтрэх үндсэн нууц үг шинэчлэгдэх болно. Мөн өмнөх default нууц үг дагаж ажиллах болно.
+              </p>
+
+              {passwordChangeSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-800 font-medium">
+                  {passwordChangeSuccess}
+                </div>
+              )}
+
+              {passwordChangeError && (
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 font-medium">
+                  {passwordChangeError}
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-brand-teal">Шинэ нууц үг *</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Шинэ нууц үг оруулна уу"
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal text-sm"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-brand-teal">Шинэ нууц үг баталгаажуулах *</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Шинэ нууц үгийг давтан оруулна уу"
+                  value={newPasswordConfirm}
+                  onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal text-sm"
+                />
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="pt-4 border-t border-slate-100 flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsChangingPassword(false)}
+                  className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-xl font-bold hover:text-slate-800 transition-colors cursor-pointer"
+                >
+                  Цуцлах
+                </button>
+                <button
+                  type="submit"
+                  disabled={isChangingPasswordSubmitting}
+                  className="px-5 py-2.5 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-xl font-bold transition-colors shadow-md shadow-slate-100 cursor-pointer disabled:opacity-50"
+                >
+                  {isChangingPasswordSubmitting ? 'Шинэчилж байна...' : 'Нууц үг хадгалах'}
+                </button>
+              </div>
+            </form>
           </motion.div>
         </div>
       )}

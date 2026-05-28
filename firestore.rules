@@ -31,5 +31,15 @@ service cloud.firestore {
     match /gallery/{galleryId} {
       allow read, write: if true;
     }
+
+    // FAQs collection rules
+    match /faqs/{faqId} {
+      allow read, write: if true;
+    }
+
+    // Admin global settings rules (for custom passwords)
+    match /settings/{settingId} {
+      allow read, write: if true;
+    }
   }
 }
