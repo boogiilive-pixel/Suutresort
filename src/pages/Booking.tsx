@@ -145,6 +145,7 @@ export default function Booking() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [realBookedDates, setRealBookedDates] = useState<Record<string, Date[]>>({});
+  const [showRoomBookingWarning, setShowRoomBookingWarning] = useState(false);
 
   useEffect(() => {
     const q = collection(db, 'bookings');
@@ -660,7 +661,7 @@ export default function Booking() {
                           </button>
 
                           <button 
-                            onClick={() => { setSelectedType('room'); setSelectedOption(null); }}
+                            onClick={() => { setShowRoomBookingWarning(true); }}
                             className="group bg-white border-2 border-brand-teal/10 hover:border-brand-teal rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer text-left flex flex-col"
                           >
                             <div className="h-56 w-full overflow-hidden relative">
@@ -1072,6 +1073,62 @@ export default function Booking() {
         </div>
       </div>
     </div>
+
+    {/* Room Booking Warning Modal */}
+    <AnimatePresence>
+      {showRoomBookingWarning && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 15 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.9, y: 15 }}
+            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-brand-teal/15 text-center space-y-6 relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-brand-yellow via-brand-teal to-brand-green" />
+            
+            <div className="w-16 h-16 bg-brand-yellow/15 text-brand-yellow rounded-full flex items-center justify-center mx-auto text-3xl font-bold">
+              ⚠️
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-2xl font-serif font-bold text-brand-teal">Амралт/Ресорт Захиалга</h3>
+              <p className="text-gray-600 text-sm md:text-base leading-relaxed font-semibold">
+                Үйлчлүүлэгч та дараах утсаар холбогдож захиалгаа өгөөрэй!
+              </p>
+              <div className="bg-brand-teal/5 border border-brand-teal/10 rounded-2xl py-4 px-6 inline-block my-2 shadow-inner">
+                <a href="tel:8801-0011" className="text-2xl md:text-3xl font-extrabold text-brand-teal tracking-wider hover:underline flex items-center justify-center gap-2">
+                  <span>📞 8801-0011</span>
+                </a>
+              </div>
+              <p className="text-xs text-brand-teal/60 font-medium">
+                (Амралт, ресортын өрөөнүүдийн захиалгыг зөвхөн утсаар хүлээн авдаг болохыг анхаарна уу)
+              </p>
+            </div>
+
+            <div className="flex gap-4 pt-2">
+              <a 
+                href="tel:8801-0011" 
+                className="flex-1 py-3.5 px-4 bg-brand-teal hover:bg-brand-teal/90 text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center gap-1 text-sm cursor-pointer"
+              >
+                Шууд залгах
+              </a>
+              <button
+                onClick={() => setShowRoomBookingWarning(false)}
+                type="button"
+                className="flex-1 py-3.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl transition-all text-sm cursor-pointer border border-gray-200/50"
+              >
+                Хаах
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   </div>
 );
 }
