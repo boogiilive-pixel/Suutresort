@@ -11,7 +11,66 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+// Security Headers Middleware: Protects against XSS, clickjacking, MIME-sniffing, etc.
+app.use((req, res, next) => {
+  // Prevent MIME-sniffing
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  // Basic XSS mitigation
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  // Privacy preservation for referrers
+  res.setHeader("Referrer-Policy", "no-referrer-when-downgrade");
+  // Hardened transport security
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+
+  // Content-Security-Policy allowing Google Drive, Unsplash, and Firebase, keeping app and iframe embedded compatibility
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self' https:; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "img-src 'self' data: blob: https://lh3.googleusercontent.com https://drive.google.com https://images.unsplash.com https://images.pexels.com https://firebasestorage.googleapis.com; " +
+    "font-src 'self' data: https://fonts.gstatic.com; " +
+    "connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com;"
+  );
+  next();
+});
+
+// Protect memory by limiting the JSON payload size to 10MB
+app.use(express.json({ limit: "10mb" }));
+
+// Robust In-Memory API Rate Limiter to prevent brute force or denial of service
+const ipLimits = new Map<string, { count: number; resetTime: number }>();
+app.use((req, res, next) => {
+  if (!req.path.startsWith("/api/")) {
+    return next();
+  }
+
+  const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0].trim() || req.ip || "unknown-ip";
+  const now = Date.now();
+  const LIMIT_WINDOW_MS = 60000; // 1 minute window
+  const MAX_LIMIT = 150; // Allow max 150 requests per minute per IP to protect server resources
+
+  let limitInfo = ipLimits.get(ip);
+  if (!limitInfo || now > limitInfo.resetTime) {
+    limitInfo = { count: 0, resetTime: now + LIMIT_WINDOW_MS };
+  }
+
+  limitInfo.count += 1;
+  ipLimits.set(ip, limitInfo);
+
+  res.setHeader("X-RateLimit-Limit", MAX_LIMIT);
+  res.setHeader("X-RateLimit-Remaining", Math.max(0, MAX_LIMIT - limitInfo.count));
+  res.setHeader("X-RateLimit-Reset", Math.ceil(limitInfo.resetTime / 1000));
+
+  if (limitInfo.count > MAX_LIMIT) {
+    return res.status(429).json({
+      error: "Нэг минутанд хэтэрхий олон хандалт хийсэн байна. Түр хүлээгээд дахин оролдоно уу (Rate Limit Exceeded).",
+      status: 429
+    });
+  }
+
+  next();
+});
 
 // Initialize Firestore on Backend
 let db: any = null;
@@ -577,6 +636,16 @@ app.delete("/api/bookings/:id", async (req, res) => {
   } else {
     res.status(404).json({ error: "Booking not found" });
   }
+});
+
+
+// Global Error Handling Middleware: Prevents process crashes and secures stack trace leakage
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("[SUUT Security Gateway Error]:", err);
+  res.status(500).json({
+    error: "Дотоод системийн алдаа гарлаа. Түр хүлээгээд дахин оролдоно уу.",
+    message: process.env.NODE_ENV === "production" ? undefined : err.message
+  });
 });
 
 
