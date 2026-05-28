@@ -66,6 +66,19 @@ const DEFAULT_NEWS = [
   }
 ];
 
+const DEFAULT_GALLERY = [
+  { id: 'g-1', category: 'Nature', caption: 'Суут Резортын үзэсгэлэнт байгаль, уудам уулсын дүр төрх', image: 'https://lh3.googleusercontent.com/d/1Oxp_ZDBK19Hdy24jBetAr25G0wutZpQG' },
+  { id: 'g-2', category: 'Nature', caption: 'Хусан ойн нам гүм, цэнгэг агаарт алхан биеэ журамшуулах замын агшин', image: 'https://lh3.googleusercontent.com/d/1VPMeteBUV7gEU-Ay-GqdoINLS-gUJW7H' },
+  { id: 'g-3', category: 'Nature', caption: 'Ногоон зүлэг, өвөрмөц тохижилт бүхий задгай талбайн хэсэг', image: 'https://lh3.googleusercontent.com/d/1QyGzIVu5zReIP6TE194liiqltKGztEb9' },
+  { id: 'g-4', category: 'Rooms', caption: 'Ая тухтай, орчин үеийн гэр бүлийн дотоод засал чимэглэл бүхий стандарт өрөө', image: 'https://lh3.googleusercontent.com/d/1mu0C8z2FhG7HJF6vuVEItWV-O2WDkFYa' },
+  { id: 'g-5', category: 'Rooms', caption: 'Тав тухыг дээд зэргээр хангасан, толигор өрөөний дулаахан унтлагын хэсэг', image: 'https://lh3.googleusercontent.com/d/1zoXTewURVSFqXbQvarGOUJV046P0J0DU' },
+  { id: 'g-6', category: 'Houses', caption: 'Байгальд орших цэвэр модон тансаг зэрэглэлийн хаусны гаднах болон орчны харагдах байдал', image: 'https://lh3.googleusercontent.com/d/1IoAQw8BDVtkB4dL3ZC6ek7U6SfKdh_gu' },
+  { id: 'g-7', category: 'Houses', caption: 'Хүүхдийн тоглоомын хэсэг болон амрах талбай бүхий гэр бүлд зориулагдсан модон хаус', image: 'https://lh3.googleusercontent.com/d/1cQEYwq-79GPLXX6QmOyDrrQ_bwX51Z8T' },
+  { id: 'g-8', category: 'Houses', caption: 'Хус модны төгөлд байрласан тухлаг, уламжлалт хэв маягийг шингээсэн зуслангийн гэр', image: 'https://lh3.googleusercontent.com/d/1hUTtrjo0_w0pbY9Pd5C4HGOYRF6VkyRa' },
+  { id: 'g-9', category: 'Houses', caption: 'Харуулц хангасан тагттай, цэлгэр цонхтой байгалийн үзэмжит хаусны дүр зураг', image: 'https://lh3.googleusercontent.com/d/1fWwKCW7vLNqrj6QSMm1k2EO9CEtrOT__' },
+  { id: 'g-10', category: 'Houses', caption: 'Үдшийн гэрэлтүүлэгтэй маш тохилог, намуухан амралтын модон сууцнууд', image: 'https://lh3.googleusercontent.com/d/1weJpTiCTRZwGq5smajOL4tcOQWj2mqjG' },
+];
+
 // Direct option configurations matching Booking.tsx
 const ADMIN_OPTIONS = [
   { id: 'villa-1', type: 'house', title: 'Цэвэр Модон Хаус (Тав тух & Халаалт)' },
@@ -268,6 +281,25 @@ export default function Admin() {
       const exists = combined.some(item => item.id === lItem.id);
       if (!exists) combined.push(lItem);
     });
+
+    // Merge default gallery if they aren't deleted and not already mapped
+    let deletedDefaults: any[] = [];
+    try {
+      deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_gallery_ids') || '[]');
+    } catch {}
+
+    DEFAULT_GALLERY.forEach((defItem: any) => {
+      if (deletedDefaults.includes(defItem.id)) return;
+      
+      const exists = combined.some(item => item.id === defItem.id || item.image === defItem.image);
+      if (!exists) {
+        combined.push({
+          ...defItem,
+          createdAt: { toDate: () => new Date('2026-05-15') } // Wrap in expected format
+        });
+      }
+    });
+
     setGallery(combined);
   };
 
@@ -963,6 +995,16 @@ export default function Admin() {
       const local = JSON.parse(localStorage.getItem('suut_custom_gallery') || '[]');
       const updated = local.filter((item: any) => item.id !== galleryId);
       localStorage.setItem('suut_custom_gallery', JSON.stringify(updated));
+
+      // If it's a default gallery item, register it as deleted
+      if (galleryId.startsWith('g-')) {
+        const deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_gallery_ids') || '[]');
+        if (!deletedDefaults.includes(galleryId)) {
+          deletedDefaults.push(galleryId);
+          localStorage.setItem('suut_deleted_default_gallery_ids', JSON.stringify(deletedDefaults));
+        }
+      }
+
       syncGallery();
     } catch (err) {
       console.error("Delete gallery image failed: ", err);
@@ -1024,7 +1066,7 @@ export default function Admin() {
         }
 
         // Fallback Firestore update with promise reporting
-        await updateDoc(doc(db, 'gallery', editingGallery.id), payload)
+        await setDoc(doc(db, 'gallery', editingGallery.id), payload, { merge: true })
           .then(() => {
             console.log("Firestore gallery successfully updated:", editingGallery.id);
           })
@@ -1034,10 +1076,18 @@ export default function Admin() {
           });
 
         // Update local storage backup
-        const updated = local.map((item: any) => {
+        let updated = local.map((item: any) => {
           if (item.id === editingGallery.id) return { ...item, ...payload };
           return item;
         });
+        const exists = local.some((item: any) => item.id === editingGallery.id);
+        if (!exists) {
+          updated.push({
+            id: editingGallery.id,
+            ...payload,
+            createdAt: new Date().toISOString()
+          });
+        }
         localStorage.setItem('suut_custom_gallery', JSON.stringify(updated));
 
         setGallerySuccessMsg("Зургийн мэдээллийг амжилттай шинэчиллээ!");

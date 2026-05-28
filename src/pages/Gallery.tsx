@@ -48,9 +48,17 @@ export default function Gallery() {
       });
 
       // Merge custom items with DEFAULT_GALLERY
+      let deletedDefaults: string[] = [];
+      try {
+        deletedDefaults = JSON.parse(localStorage.getItem('suut_deleted_default_gallery_ids') || '[]');
+      } catch {}
+
       const merged = [
         ...combined,
-        ...DEFAULT_GALLERY.filter(def => !combined.some(cust => cust.image === def.image))
+        ...DEFAULT_GALLERY.filter(def => 
+          !deletedDefaults.includes(def.id) && 
+          !combined.some(cust => cust.image === def.image || cust.id === def.id)
+        )
       ];
       setGalleryList(merged);
     };
