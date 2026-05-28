@@ -51,7 +51,7 @@ const tours: TourProgram[] = [
     textColor: 'text-sky-600',
     accentColor: 'border-sky-200/50',
     icon: <Snowflake className="text-sky-600" size={32} />,
-    image: 'https://lh3.googleusercontent.com/d/1U1e3LyMhemPBnDOgIS__Q0GGqDW1-CLZ',
+    image: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?auto=format&fit=crop&q=80&w=1200',
     description: 'Мөнх цагаан хучлагатай байгалийн үзэсгэлэн дунд цасны сумо, цасан хүн хийх зэрэг уламжлалт болон орчин үеийн хөгжөөнт цасан тоглоомоор наадаж, өвөрмөц дурсамж бүтээх хөтөлбөр.',
     steps: [
       'Сургуулиас хөдлөх',
