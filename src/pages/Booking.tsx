@@ -561,9 +561,9 @@ export default function Booking() {
                     )}
 
                     <div className="pt-2 border-t border-brand-teal/10 flex justify-between items-center">
-                      <span className="font-bold text-brand-teal/80">Урьдчилгаа дүн (10%):</span>
+                      <span className="font-bold text-brand-teal/80">Урьдчилгаа дүн (30%):</span>
                       <span className="font-extrabold text-[#d32f2f] text-base">
-                        {(priceReport.totalPrice * 0.1).toLocaleString()}₮
+                        {(priceReport.totalPrice * 0.3).toLocaleString()}₮
                       </span>
                     </div>
 
@@ -1022,9 +1022,9 @@ export default function Booking() {
                             )}
 
                             <div className="pt-2 border-t border-brand-teal/10 flex justify-between items-center font-bold">
-                              <span className="text-brand-teal/80">Урьдчилгаа дүн (10%):</span>
+                              <span className="text-brand-teal/80">Урьдчилгаа дүн (30%):</span>
                               <span className="text-[#d32f2f]">
-                                {(priceReport.totalPrice * 0.1).toLocaleString()}₮
+                                {(priceReport.totalPrice * 0.3).toLocaleString()}₮
                               </span>
                             </div>
 
