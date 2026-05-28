@@ -348,6 +348,7 @@ export default function Admin() {
   const [adults, setAdults] = useState(1);
   const [childrenCount, setChildrenCount] = useState(0);
   const [manualPrice, setManualPrice] = useState<number | null>(null);
+  const [advancePayment, setAdvancePayment] = useState<number>(0);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
   const [bookingSuccessMsg, setBookingSuccessMsg] = useState<string | null>(null);
   const [confirmingBooking, setConfirmingBooking] = useState<any | null>(null);
@@ -1314,6 +1315,8 @@ export default function Admin() {
         weekdayNights: report.weekdayNights || 0,
         weekendNights: report.weekendNights || 0,
         totalPrice: resolvedPrice,
+        advancePayment: advancePayment || 0,
+        remainingBalance: Math.max(0, resolvedPrice - (advancePayment || 0)),
         status: 'confirmed', // Admin manual checkouts default directly to confirmed
         createdAt: new Date()
       };
@@ -1343,6 +1346,7 @@ export default function Admin() {
       setCheckInDate('');
       setCheckOutDate('');
       setManualPrice(null);
+      setAdvancePayment(0);
       setAdults(1);
       setChildrenCount(0);
 
@@ -1471,6 +1475,21 @@ export default function Admin() {
       averageRevenue: confirmedCount > 0 ? Math.round(totalRevenue / confirmedCount) : 0
     };
   }, [bookings]);
+
+  // Dynamic price calculation for the manual booking form
+  const dynamicBookingReport = React.useMemo(() => {
+    if (!checkInDate || !checkOutDate || !selectedOptionId) {
+      return null;
+    }
+    try {
+      const from = new Date(checkInDate);
+      const to = new Date(checkOutDate);
+      if (isNaN(from.getTime()) || isNaN(to.getTime())) return null;
+      return calculatePriceReport(selectedOptionId, { from, to });
+    } catch {
+      return null;
+    }
+  }, [checkInDate, checkOutDate, selectedOptionId]);
 
   // Filter & search bookings
   const filteredBookings = bookings.filter((b) => {
@@ -1795,9 +1814,19 @@ export default function Admin() {
                               {b.children > 0 && <span className="block text-slate-400">Хүүхэд: {b.children}</span>}
                             </td>
                             <td className="p-4">
-                              <span className="font-bold text-brand-red text-xs md:text-sm">
+                              <span className="font-bold text-brand-red text-xs md:text-sm block">
                                 {b.totalPrice ? `${b.totalPrice.toLocaleString()}₮` : 'Тодорхойгүй'}
                               </span>
+                              {Number(b.advancePayment) > 0 && (
+                                <div className="mt-1 space-y-1">
+                                  <div className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 inline-block">
+                                    Урьдчилгаа: {Number(b.advancePayment).toLocaleString()}₮
+                                  </div>
+                                  <div className="text-[10px] text-amber-900 font-extrabold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 block w-max">
+                                    Үлдэгдэл: {Math.max(0, (Number(b.totalPrice) || 0) - (Number(b.advancePayment) || 0)).toLocaleString()}₮
+                                  </div>
+                                </div>
+                              )}
                             </td>
                             <td className="p-4">
                               <span className={`inline-block text-[10px] uppercase font-bold px-3 py-1 rounded-full ${
@@ -2292,6 +2321,41 @@ export default function Admin() {
                       />
                     </div>
                   </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-brand-teal block">Урьдчилгаа төлсөн эсэх (Урьдчилгаа төлбөр)</label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                      <input
+                        type="number"
+                        placeholder="Жишээ: 100000 (Төлөөгүй бол 0 эсвэл хоосон орхино)"
+                        value={advancePayment || ''}
+                        onChange={(e) => setAdvancePayment(e.target.value ? Number(e.target.value) : 0)}
+                        className="pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm w-full focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {advancePayment > 0 && (
+                    <div className="p-4 bg-teal-50 border border-teal-100/50 rounded-2xl space-y-2 text-xs">
+                      <div className="flex justify-between text-slate-600">
+                        <span>Нийт төлөх дүн:</span>
+                        <span className="font-bold">
+                          {(manualPrice !== null ? manualPrice : (dynamicBookingReport?.totalPrice || 0)).toLocaleString()}₮
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-brand-teal">
+                        <span>Үүнээс төлсөн урьдчилгаа:</span>
+                        <span className="font-bold">-{advancePayment.toLocaleString()}₮</span>
+                      </div>
+                      <div className="flex justify-between border-t border-teal-200/30 pt-2 font-bold text-slate-950 mt-1">
+                        <span className="text-amber-800">Үйлчлүүлэгчээс авах үлдэгдэл төлбөр:</span>
+                        <span className="text-amber-800 text-sm font-black underline decoration-double">
+                          {Math.max(0, (manualPrice !== null ? manualPrice : (dynamicBookingReport?.totalPrice || 0)) - advancePayment).toLocaleString()}₮
+                        </span>
+                      </div>
+                    </div>
+                  )}
 
                   <button
                     type="submit"
@@ -2854,15 +2918,29 @@ export default function Admin() {
               </div>
 
               {/* Total Price & Payment */}
-              <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <div className="space-y-0.5">
+              <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div className="flex justify-between items-center">
                   <span className="text-xs text-slate-500 font-bold block">Нийт бодогдсон үнэ:</span>
-                </div>
-                <div>
                   <span className="text-lg font-serif font-extrabold text-brand-red">
                     {confirmingBooking.totalPrice ? `${confirmingBooking.totalPrice.toLocaleString()}₮` : 'Тодорхойгүй'}
                   </span>
                 </div>
+                {Number(confirmingBooking.advancePayment) > 0 && (
+                  <>
+                    <div className="flex justify-between items-center text-xs border-t border-slate-200/50 pt-2 text-emerald-800">
+                      <span className="font-semibold font-sans">Төлсөн урьдчилгаа:</span>
+                      <span className="font-extrabold font-serif">
+                        -{Number(confirmingBooking.advancePayment).toLocaleString()}₮
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs border-t border-slate-200/50 pt-2 text-amber-900 font-bold">
+                      <span className="font-sans">Үйлчлүүлэгчээс авах үлдэгдэл төлбөр:</span>
+                      <span className="font-serif font-black text-sm underline decoration-double">
+                        {Math.max(0, (Number(confirmingBooking.totalPrice) || 0) - (Number(confirmingBooking.advancePayment) || 0)).toLocaleString()}₮
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -3112,8 +3190,14 @@ export default function Admin() {
                   <td className="p-2 border border-slate-200">
                     <span className="font-bold">{b.checkIn}</span>-аас <span className="font-bold">{b.checkOut}</span>
                   </td>
-                  <td className="p-2 border border-slate-200 font-extrabold text-slate-900 font-serif">
-                    {b.totalPrice ? `${b.totalPrice.toLocaleString()}₮` : '0₮'}
+                  <td className="p-2 border border-slate-200 font-serif">
+                    <div className="font-extrabold text-slate-900">{b.totalPrice ? `${b.totalPrice.toLocaleString()}₮` : '0₮'}</div>
+                    {Number(b.advancePayment) > 0 && (
+                      <div className="text-[7.5px] text-slate-500 font-sans mt-0.5 space-y-0.5" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                        <div>Урьдчилгаа: {Number(b.advancePayment).toLocaleString()}₮</div>
+                        <div className="font-bold text-amber-700">Үлдэгдэл: {Math.max(0, (Number(b.totalPrice) || 0) - (Number(b.advancePayment) || 0)).toLocaleString()}₮</div>
+                      </div>
+                    )}
                   </td>
                   <td className="p-2 border border-slate-200 text-center">
                     <span className={`inline-block text-[7px] uppercase font-bold px-2 py-0.5 rounded-full ${
